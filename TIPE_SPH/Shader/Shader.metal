@@ -32,8 +32,7 @@ vertex VertexOut draw(const VertexIn vertexIn [[stage_in]],
 {
     
     VertexOut out;
-    Particle particle = particles[instanceid];
-    out.position = uniforms.projectionMatrix * uniforms.viewMatrix * vertexIn.position;
+    out.position = vertexIn.position;
     out.normal = vertexIn.normal;
     
     return out;
