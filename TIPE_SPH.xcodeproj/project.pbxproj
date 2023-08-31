@@ -10,7 +10,13 @@
 		2604B60A2AA08FC3004B1B52 /* TIPE_SPHApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6092AA08FC3004B1B52 /* TIPE_SPHApp.swift */; };
 		2604B60C2AA08FC3004B1B52 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B60B2AA08FC3004B1B52 /* ContentView.swift */; };
 		2604B60E2AA08FC5004B1B52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2604B60D2AA08FC5004B1B52 /* Assets.xcassets */; };
-		2604B6112AA08FC5004B1B52 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2604B6102AA08FC5004B1B52 /* Preview Assets.xcassets */; };
+		2604B61A2AA09024004B1B52 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6192AA09024004B1B52 /* MetalView.swift */; };
+		2604B61D2AA09059004B1B52 /* GameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B61C2AA09059004B1B52 /* GameController.swift */; };
+		2604B61F2AA090E5004B1B52 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B61E2AA090E5004B1B52 /* Renderer.swift */; };
+		2604B6222AA092FA004B1B52 /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6212AA092FA004B1B52 /* Common.swift */; };
+		2604B6242AA09422004B1B52 /* Shader.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6232AA09422004B1B52 /* Shader.metal */; };
+		2604B6282AA09680004B1B52 /* Alias.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6272AA09680004B1B52 /* Alias.swift */; };
+		2604B62A2AA12D0B004B1B52 /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6292AA12D0B004B1B52 /* Camera.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,8 +24,15 @@
 		2604B6092AA08FC3004B1B52 /* TIPE_SPHApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TIPE_SPHApp.swift; sourceTree = "<group>"; };
 		2604B60B2AA08FC3004B1B52 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2604B60D2AA08FC5004B1B52 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		2604B6102AA08FC5004B1B52 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2604B6122AA08FC5004B1B52 /* TIPE_SPH.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TIPE_SPH.entitlements; sourceTree = "<group>"; };
+		2604B6192AA09024004B1B52 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
+		2604B61C2AA09059004B1B52 /* GameController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameController.swift; sourceTree = "<group>"; };
+		2604B61E2AA090E5004B1B52 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
+		2604B6202AA092ED004B1B52 /* Common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Common.h; sourceTree = "<group>"; };
+		2604B6212AA092FA004B1B52 /* Common.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
+		2604B6232AA09422004B1B52 /* Shader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shader.metal; sourceTree = "<group>"; };
+		2604B6272AA09680004B1B52 /* Alias.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alias.swift; sourceTree = "<group>"; };
+		2604B6292AA12D0B004B1B52 /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,21 +65,52 @@
 		2604B6082AA08FC3004B1B52 /* TIPE_SPH */ = {
 			isa = PBXGroup;
 			children = (
-				2604B6092AA08FC3004B1B52 /* TIPE_SPHApp.swift */,
-				2604B60B2AA08FC3004B1B52 /* ContentView.swift */,
-				2604B60D2AA08FC5004B1B52 /* Assets.xcassets */,
-				2604B6122AA08FC5004B1B52 /* TIPE_SPH.entitlements */,
-				2604B60F2AA08FC5004B1B52 /* Preview Content */,
+				2604B6202AA092ED004B1B52 /* Common.h */,
+				2604B6212AA092FA004B1B52 /* Common.swift */,
+				2604B6252AA09427004B1B52 /* Shader */,
+				2604B61B2AA09043004B1B52 /* Main */,
+				2604B6182AA08FD6004B1B52 /* Application */,
+				2604B6262AA09658004B1B52 /* Maths */,
 			);
 			path = TIPE_SPH;
 			sourceTree = "<group>";
 		};
-		2604B60F2AA08FC5004B1B52 /* Preview Content */ = {
+		2604B6182AA08FD6004B1B52 /* Application */ = {
 			isa = PBXGroup;
 			children = (
-				2604B6102AA08FC5004B1B52 /* Preview Assets.xcassets */,
+				2604B6092AA08FC3004B1B52 /* TIPE_SPHApp.swift */,
+				2604B60B2AA08FC3004B1B52 /* ContentView.swift */,
+				2604B6192AA09024004B1B52 /* MetalView.swift */,
+				2604B60D2AA08FC5004B1B52 /* Assets.xcassets */,
+				2604B6122AA08FC5004B1B52 /* TIPE_SPH.entitlements */,
 			);
-			path = "Preview Content";
+			path = Application;
+			sourceTree = "<group>";
+		};
+		2604B61B2AA09043004B1B52 /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				2604B61C2AA09059004B1B52 /* GameController.swift */,
+				2604B61E2AA090E5004B1B52 /* Renderer.swift */,
+				2604B6292AA12D0B004B1B52 /* Camera.swift */,
+			);
+			path = Main;
+			sourceTree = "<group>";
+		};
+		2604B6252AA09427004B1B52 /* Shader */ = {
+			isa = PBXGroup;
+			children = (
+				2604B6232AA09422004B1B52 /* Shader.metal */,
+			);
+			path = Shader;
+			sourceTree = "<group>";
+		};
+		2604B6262AA09658004B1B52 /* Maths */ = {
+			isa = PBXGroup;
+			children = (
+				2604B6272AA09680004B1B52 /* Alias.swift */,
+			);
+			path = Maths;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -127,7 +171,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2604B6112AA08FC5004B1B52 /* Preview Assets.xcassets in Resources */,
 				2604B60E2AA08FC5004B1B52 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -139,8 +182,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2604B6282AA09680004B1B52 /* Alias.swift in Sources */,
+				2604B61A2AA09024004B1B52 /* MetalView.swift in Sources */,
+				2604B61D2AA09059004B1B52 /* GameController.swift in Sources */,
 				2604B60C2AA08FC3004B1B52 /* ContentView.swift in Sources */,
+				2604B61F2AA090E5004B1B52 /* Renderer.swift in Sources */,
+				2604B6222AA092FA004B1B52 /* Common.swift in Sources */,
+				2604B6242AA09422004B1B52 /* Shader.metal in Sources */,
 				2604B60A2AA08FC3004B1B52 /* TIPE_SPHApp.swift in Sources */,
+				2604B62A2AA12D0B004B1B52 /* Camera.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,11 +315,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = TIPE_SPH/TIPE_SPH.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TIPE_SPH/Application/TIPE_SPH.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"TIPE_SPH/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = V973K8L7V4;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -283,6 +334,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "romanroux.TIPE-SPH";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = TIPE_SPH/Common.h;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -292,11 +344,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = TIPE_SPH/TIPE_SPH.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TIPE_SPH/Application/TIPE_SPH.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"TIPE_SPH/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = V973K8L7V4;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -310,6 +363,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "romanroux.TIPE-SPH";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = TIPE_SPH/Common.h;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

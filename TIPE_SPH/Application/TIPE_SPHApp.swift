@@ -11,7 +11,7 @@ import SwiftUI
 struct TIPE_SPHApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
-        }
+            ContentView().frame(width: Settings.width, height: Settings.height, alignment: .center).fixedSize()
+        }.windowResizability(.contentSize)
     }
 }
