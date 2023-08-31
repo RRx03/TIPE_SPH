@@ -34,7 +34,7 @@ class GameController : NSObject {
     }
     func initParticles (){
         particles = Array(repeating: Particle(position: [0, 0, 0], velocity: [0, 0, 0], currentForce: [0, 0, 0], density: 0, pressure: 0), count: Int(ParticleSettings.particleCount))
-        GameController.particleBuffer = Renderer.device.makeBuffer(bytes: &particles, length: Int(ParticleSettings.particleCount))
+        GameController.particleBuffer = Renderer.device.makeBuffer(bytes: &particles, length: Int(ParticleSettings.particleCount)*MemoryLayout<Particle>.stride)
         
     }
     
