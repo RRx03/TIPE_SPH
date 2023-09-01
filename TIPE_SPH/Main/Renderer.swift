@@ -87,21 +87,23 @@ class Renderer : NSObject {
         renderEncoder.setDepthStencilState(depthStencilState)
         renderEncoder.setRenderPipelineState(renderPipelineState)
         
-        uniforms.viewMatrix = float4x4(translation: [0, 0, 3])
+        uniforms.viewMatrix = float4x4(translation: [0, 0, -10]).inverse
+        
+        let submesh = mesh.submeshes[0]
         
         renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
         renderEncoder.setFragmentBytes(&params, length: MemoryLayout<Params>.stride, index: 12)
-        
         renderEncoder.setVertexBuffer(mesh.vertexBuffers[0].buffer, offset: 0, index: 0)
-        
-        for submesh in mesh.submeshes {
-            renderEncoder.drawIndexedPrimitives(
+        renderEncoder.setVertexBuffer(GameController.particleBuffer, offset: 0, index: 1)
+
+        renderEncoder.drawIndexedPrimitives(
                 type: .triangle,
                 indexCount: submesh.indexCount,
                 indexType: submesh.indexType,
                 indexBuffer: submesh.indexBuffer.buffer,
-                indexBufferOffset: submesh.indexBuffer.offset)
-        }
+                indexBufferOffset: submesh.indexBuffer.offset,
+                instanceCount: Int(ParticleSettings.particleCount))
+        
         
         
         

@@ -17,4 +17,9 @@ typedef struct {
     float height;
 } Params;
 
+
+typedef struct {
+    simd_float3 position;
+} Particle;
+
 #endif

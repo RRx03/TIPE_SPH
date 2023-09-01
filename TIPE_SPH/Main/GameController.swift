@@ -4,6 +4,9 @@ class GameController : NSObject {
     
     var renderer : Renderer
     
+    var particles : [Particle] = []
+    static var particleBuffer : MTLBuffer!
+    
     init(metalView : MTKView){
         
         
@@ -17,6 +20,23 @@ class GameController : NSObject {
         metalView.delegate = self
         
         
+        
+        
+        initParticles()
+        
+        
+        
+        
+    }
+    func initParticles(){
+        particles = Array(repeating: Particle(position: [0, 0, 0]), count: Int(ParticleSettings.particleCount))
+        GameController.particleBuffer = Renderer.device.makeBuffer(bytes: &particles, length: MemoryLayout<Particle>.stride*Int(ParticleSettings.particleCount))
+        var pointer = GameController.particleBuffer.contents().bindMemory(to: Particle.self, capacity: Int(ParticleSettings.particleCount))
+        for _ in particles {
+            pointer.pointee.position = [Float.random(in: -1...1), Float.random(in: -1...1), Float.random(in: -1...1)]
+            pointer = pointer.advanced(by: 1)
+        }
+    
     }
     
     

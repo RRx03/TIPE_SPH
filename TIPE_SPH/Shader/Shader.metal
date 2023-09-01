@@ -18,11 +18,20 @@ struct VertexOut
 
 };
 
-vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]], constant Uniforms &uniforms [[buffer(11)]])
+matrix_float4x4 translationMatrix(float3 translation){
+    return matrix_float4x4(float4(1.0, 0.0, 0., 0.), float4(0., 1., 0., 0.), float4(0., 0., 1., 0.),  float4(translation.x, translation.y, translation.z, 1.));
+    
+}
+
+vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]],
+                        constant Particle *particles [[buffer(1)]],
+                        constant Uniforms &uniforms [[buffer(11)]],
+                        uint instanceid [[instance_id]])
 {
     
     VertexOut out;
-    out.position =  uniforms.projectionMatrix * uniforms.viewMatrix * vertexIn.position;
+    Particle particle = particles[instanceid];
+    out.position =  uniforms.projectionMatrix * uniforms.viewMatrix * translationMatrix(particle.position) * vertexIn.position;
     out.normal = vertexIn.normal;
     return out;
 }
