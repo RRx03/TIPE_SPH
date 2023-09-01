@@ -7,18 +7,30 @@ class Renderer : NSObject {
     static var library : MTLLibrary!
     
     var renderPipelineState : MTLRenderPipelineState!
+    let depthStencilState: MTLDepthStencilState?
+
+    
     var uniforms : Uniforms = Uniforms()
     var params : Params = Params()
     
     
     var mesh : MTKMesh
     
+    static func buildDepthStencilState() -> MTLDepthStencilState? {
+        let descriptor = MTLDepthStencilDescriptor()
+        descriptor.depthCompareFunction = .less
+        descriptor.isDepthWriteEnabled = true
+        return Renderer.device.makeDepthStencilState(
+            descriptor: descriptor)
+    }
     
     init(metalView : MTKView){
         let device = MTLCreateSystemDefaultDevice()
         let commandQueue = device?.makeCommandQueue()
         Renderer.device = device
         Renderer.commandQueue = commandQueue
+        depthStencilState = Self.buildDepthStencilState()
+
         
         
         
@@ -47,7 +59,9 @@ class Renderer : NSObject {
         renderPipelineStateDescriptor.vertexFunction = vertex
         renderPipelineStateDescriptor.fragmentFunction = fragment
         renderPipelineStateDescriptor.vertexDescriptor = MTKMetalVertexDescriptorFromModelIO(mesh.vertexDescriptor)
-        renderPipelineStateDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+        renderPipelineStateDescriptor.colorAttachments[0].pixelFormat = metalView.colorPixelFormat
+        renderPipelineStateDescriptor.depthAttachmentPixelFormat = .depth32Float
+
         
         do {
             renderPipelineState = try Renderer.device.makeRenderPipelineState(descriptor: renderPipelineStateDescriptor)
@@ -57,6 +71,7 @@ class Renderer : NSObject {
         
         metalView.device = Renderer.device
         metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
+        metalView.depthStencilPixelFormat = .depth32Float
         metalView.delegate = self
         
         params.width = Float(Settings.width)
@@ -79,6 +94,7 @@ extension Renderer : MTKViewDelegate {
         guard let renderPass = view.currentRenderPassDescriptor else {return}
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor:renderPass) else {return}
         
+        renderEncoder.setDepthStencilState(depthStencilState)
         renderEncoder.setRenderPipelineState(renderPipelineState)
         
         uniforms.viewMatrix = float4x4(translation: [0, 0, 3])
