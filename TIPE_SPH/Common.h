@@ -29,4 +29,10 @@ typedef struct {
 
 } Particle;
 
+typedef struct {
+
+    
+
+} SimulationSettings;
+
 #endif
