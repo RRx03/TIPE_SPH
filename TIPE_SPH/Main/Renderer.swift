@@ -57,7 +57,7 @@ class Renderer{
         let deltaTime = Float(currentTime - lastTime)
         lastTime = currentTime
         
-        uniforms.viewMatrix = GameController.camera.viewMatrix
+        uniforms.viewMatrix = float4x4(translation: [0, 0, 3])
         uniforms.deltaTime = deltaTime;
         
         renderEncoder.setRenderPipelineState(renderPipelineState)
