@@ -54,8 +54,8 @@ struct ParticleMesh {
     static var mesh : MTKMesh {
         var mtkMesh: MTKMesh
         let allocator = MTKMeshBufferAllocator(device: Renderer.device)
-        let sphereMesh = MDLMesh(sphereWithExtent: [ParticleSettings.Radius, ParticleSettings.Radius, ParticleSettings.Radius],
-                                 segments: [ParticleSettings.meshPrecision, ParticleSettings.meshPrecision],
+        let sphereMesh = MDLMesh(sphereWithExtent: [1, 1, 1],
+                                 segments: [100, 100],
                                  inwardNormals: false,
                                  geometryType: .triangles,
                                  allocator: allocator)
