@@ -1,71 +1,56 @@
 import MetalKit
-import MetalPerformanceShaders
-import simd
-
 
 class GameController : NSObject {
     
-    static var renderer : Renderer!
-    static var metalView : MTKView!
+    var renderer : Renderer
     
-    static var particleMesh : ParticleMesh!
     var particles : [Particle] = []
     static var particleBuffer : MTLBuffer!
     
-    static var camera : Camera!
-    
     init(metalView : MTKView){
-        GameController.metalView = metalView
-        GameController.particleMesh = ParticleMesh()
-        GameController.camera = Camera(position: [0, 0, -3])
-        GameController.renderer = Renderer(metalView: metalView)
-
+        
+        
+        renderer = Renderer(metalView: metalView)
+        
         super.init()
         
         metalView.device = Renderer.device
-        metalView.framebufferOnly = false
-        metalView.delegate = self
-        mtkView(metalView, drawableSizeWillChange: metalView.bounds.size)
         metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
+        metalView.depthStencilPixelFormat = .depth32Float
+        metalView.delegate = self
+        
+        
+        
         
         initParticles()
         
         
-    }
-    func initParticles (){
-        particles = Array(repeating: Particle(position: [0, 0, 0], velocity: [0, 0, 0], currentForce: [0, 0, 0], density: 0, pressure: 0), count: Int(ParticleSettings.particleCount))
-        GameController.particleBuffer = Renderer.device.makeBuffer(bytes: &particles, length: Int(ParticleSettings.particleCount)*MemoryLayout<Particle>.stride)
+
         
     }
+    func initParticles(){
+        particles = Array(repeating: Particle(position: [0, 0, 0]), count: Int(ParticleSettings.particleCount))
+        GameController.particleBuffer = Renderer.device.makeBuffer(bytes: &particles, length: MemoryLayout<Particle>.stride*Int(ParticleSettings.particleCount))
+        var pointer = GameController.particleBuffer.contents().bindMemory(to: Particle.self, capacity: Int(ParticleSettings.particleCount))
+        for _ in particles {
+            pointer.pointee.position = [Float.random(in: -1...1), Float.random(in: -1...1), Float.random(in: -1...1)]
+            pointer = pointer.advanced(by: 1)
+        }
+    
+    }
+    
+    
     
 }
 
-extension GameController: MTKViewDelegate {
-    func mtkView(_: MTKView, drawableSizeWillChange _: CGSize) {}
+extension GameController : MTKViewDelegate{
+    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {}
+    
     func draw(in view: MTKView) {
-        GameController.renderer.render(metalView: view)
+        
+        renderer.render(view: view)
+        
+        
         
     }
-}
-
-
-
-struct ParticleMesh {
-    static var mesh : MTKMesh {
-        var mtkMesh: MTKMesh
-        let allocator = MTKMeshBufferAllocator(device: Renderer.device)
-        let sphereMesh = MDLMesh(sphereWithExtent: [1, 1, 1],
-                                 segments: [100, 100],
-                                 inwardNormals: false,
-                                 geometryType: .triangles,
-                                 allocator: allocator)
-        
-        do {
-            mtkMesh = try MTKMesh(mesh: sphereMesh, device: Renderer.device)
-        } catch {
-            fatalError("Error Mesh")
-        }
-        return mtkMesh
-    }
-
 }
