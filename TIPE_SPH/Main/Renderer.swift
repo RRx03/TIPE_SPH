@@ -93,7 +93,7 @@ class Renderer : NSObject {
         
         
         uniforms.deltaTime = deltaTime
-        uniforms.viewMatrix = float4x4(translation: [0, 1.5, -10]).inverse // Camera translation (no Rotation)
+        uniforms.viewMatrix = float4x4(rotationX: -Float.pi/10) * float4x4(translation: [0, 5, -5]).inverse
 
         
         let submesh = mesh.submeshes[0]
