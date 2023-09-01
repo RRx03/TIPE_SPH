@@ -50,7 +50,7 @@ class GameController : NSObject {
             pointer.pointee.position += pointer.pointee.velocity * deltaTime
             
             if (pointer.pointee.position.y < 0){
-                pointer.pointee.position.y += abs(pointer.pointee.position.y)
+                pointer.pointee.position.y += abs(pointer.pointee.position.y) //ajouter collision continues la c'est fu**ed up
                 pointer.pointee.velocity.y *= -1
             }
             
