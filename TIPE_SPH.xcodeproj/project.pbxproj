@@ -16,7 +16,6 @@
 		2604B6222AA092FA004B1B52 /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6212AA092FA004B1B52 /* Common.swift */; };
 		2604B6242AA09422004B1B52 /* Shader.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6232AA09422004B1B52 /* Shader.metal */; };
 		2604B6282AA09680004B1B52 /* Alias.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6272AA09680004B1B52 /* Alias.swift */; };
-		2604B62A2AA12D0B004B1B52 /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2604B6292AA12D0B004B1B52 /* Camera.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,7 +31,6 @@
 		2604B6212AA092FA004B1B52 /* Common.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		2604B6232AA09422004B1B52 /* Shader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shader.metal; sourceTree = "<group>"; };
 		2604B6272AA09680004B1B52 /* Alias.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alias.swift; sourceTree = "<group>"; };
-		2604B6292AA12D0B004B1B52 /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,7 +90,6 @@
 			children = (
 				2604B61C2AA09059004B1B52 /* GameController.swift */,
 				2604B61E2AA090E5004B1B52 /* Renderer.swift */,
-				2604B6292AA12D0B004B1B52 /* Camera.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -190,7 +187,6 @@
 				2604B6222AA092FA004B1B52 /* Common.swift in Sources */,
 				2604B6242AA09422004B1B52 /* Shader.metal in Sources */,
 				2604B60A2AA08FC3004B1B52 /* TIPE_SPHApp.swift in Sources */,
-				2604B62A2AA12D0B004B1B52 /* Camera.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

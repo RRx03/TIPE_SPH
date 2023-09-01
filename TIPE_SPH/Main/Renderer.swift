@@ -87,7 +87,7 @@ class Renderer : NSObject {
         renderEncoder.setDepthStencilState(depthStencilState)
         renderEncoder.setRenderPipelineState(renderPipelineState)
         
-        uniforms.viewMatrix = float4x4(translation: [0, 0, -10]).inverse
+        uniforms.viewMatrix = float4x4(translation: [0, 0, -10]).inverse // Camera translation (no Rotation)
 
         
         let submesh = mesh.submeshes[0]
