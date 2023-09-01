@@ -45,3 +45,7 @@ fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &param
     float iso = max(minLighting, dot(vertexIn.normal, -light));
     return float4(float3(1)*iso, 1);
 }
+
+
+kernel void updateParticles(){ // Maybe Metal Performance shader
+}
