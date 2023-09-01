@@ -69,10 +69,7 @@ class Renderer : NSObject {
             fatalError("Fail")
         }
         
-        metalView.device = Renderer.device
-        metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
-        metalView.depthStencilPixelFormat = .depth32Float
-        metalView.delegate = self
+        
         
         params.width = Float(Settings.width)
         params.height = Float(Settings.height)
@@ -82,14 +79,7 @@ class Renderer : NSObject {
         
 
     }
-    
-}
-
-extension Renderer : MTKViewDelegate {
-    func mtkView(_ view: MTKView, drawableSizeWillChange _: CGSize) {}
-    
-    func draw(in view: MTKView) {
-        
+    func render(view : MTKView){
         guard let commandBuffer = Renderer.commandQueue.makeCommandBuffer() else {return}
         guard let renderPass = view.currentRenderPassDescriptor else {return}
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor:renderPass) else {return}
@@ -121,13 +111,7 @@ extension Renderer : MTKViewDelegate {
         commandBuffer.present(drawable)
         commandBuffer.commit()
         
-        
-        
     }
     
-    
-    
 }
-    
-
 

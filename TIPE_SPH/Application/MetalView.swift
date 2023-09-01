@@ -21,12 +21,12 @@ struct MetalViewRepresentable: NSViewRepresentable {
 
 struct MetalView: View {
     @State private var metalView = MTKView()
-    @State private var engine: Renderer?
+    @State private var engine: GameController?
     
     var body: some View {
       MetalViewRepresentable(metalView: $metalView)
         .onAppear {
-            engine = Renderer(metalView: metalView)
+            engine = GameController(metalView: metalView)
         }
     }
         
