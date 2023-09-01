@@ -36,7 +36,10 @@ class GameController : NSObject {
         GameController.particleBuffer = Renderer.device.makeBuffer(bytes: &particles, length: MemoryLayout<Particle>.stride*Int(ParticleSettings.particleCount))
         var pointer = GameController.particleBuffer.contents().bindMemory(to: Particle.self, capacity: Int(ParticleSettings.particleCount))
         for _ in particles {
-            pointer.pointee.position = [Float.random(in: -3...3), Float.random(in: 0...3), Float.random(in: -3...3)+10]
+            pointer.pointee.position = [Float.random(in: -ParticleSettings.gridSize[0]...ParticleSettings.gridSize[0]) +
+                                        ParticleSettings.gridCenterPosition[0],
+                                        Float.random(in: -ParticleSettings.gridSize[1]...ParticleSettings.gridSize[1]) + ParticleSettings.gridCenterPosition[1],
+                                        Float.random(in: -ParticleSettings.gridSize[2]...ParticleSettings.gridSize[2]) + ParticleSettings.gridCenterPosition[2]]
             pointer = pointer.advanced(by: 1)
         }
     

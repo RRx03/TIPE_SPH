@@ -24,5 +24,9 @@ enum ParticleSettings{
     static var Volume : Float = 1
     static var radius : Float = 0.01
     static var meshPrecision : UInt32 = 10
+    static var spawnJigger : Float = 0.2
+    static var gridSize : [Float] = [1, 1, 1] //c'est la taille de chaque cote du centre donc on double pour avoir la vraie width, height, depth
+    static var gridCenterPosition : [Float] = [0, 2, 0]
+
 
 }
