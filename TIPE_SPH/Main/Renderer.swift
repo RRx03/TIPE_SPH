@@ -13,6 +13,8 @@ class Renderer : NSObject {
     var uniforms : Uniforms = Uniforms()
     var params : Params = Params()
     
+
+    
     
     var mesh : MTKMesh
     
@@ -79,15 +81,19 @@ class Renderer : NSObject {
         
 
     }
-    func render(view : MTKView){
+    func render(view : MTKView, deltaTime : Float){
         guard let commandBuffer = Renderer.commandQueue.makeCommandBuffer() else {return}
         guard let renderPass = view.currentRenderPassDescriptor else {return}
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor:renderPass) else {return}
         
+   
+        
         renderEncoder.setDepthStencilState(depthStencilState)
         renderEncoder.setRenderPipelineState(renderPipelineState)
         
-        uniforms.viewMatrix = float4x4(translation: [0, 0, -10]).inverse // Camera translation (no Rotation)
+        
+        uniforms.deltaTime = deltaTime
+        uniforms.viewMatrix = float4x4(translation: [0, 1.5, -10]).inverse // Camera translation (no Rotation)
 
         
         let submesh = mesh.submeshes[0]

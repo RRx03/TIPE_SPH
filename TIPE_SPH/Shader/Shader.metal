@@ -24,7 +24,7 @@ matrix_float4x4 translationMatrix(float3 translation){
 }
 
 vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]],
-                        constant Particle *particles [[buffer(1)]],
+                        device Particle *particles [[buffer(1)]],
                         constant Uniforms &uniforms [[buffer(11)]],
                         uint instanceid [[instance_id]])
 {
@@ -33,6 +33,7 @@ vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]],
     Particle particle = particles[instanceid];
     out.position =  uniforms.projectionMatrix * uniforms.viewMatrix * translationMatrix(particle.position) * vertexIn.position;
     out.normal = vertexIn.normal;
+    
     return out;
 }
 

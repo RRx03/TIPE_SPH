@@ -7,6 +7,9 @@ class GameController : NSObject {
     var particles : [Particle] = []
     static var particleBuffer : MTLBuffer!
     
+    var lastTime: Double = CFAbsoluteTimeGetCurrent()
+
+    
     init(metalView : MTKView){
         
         
@@ -29,14 +32,32 @@ class GameController : NSObject {
         
     }
     func initParticles(){
-        particles = Array(repeating: Particle(position: [0, 0, 0]), count: Int(ParticleSettings.particleCount))
+        particles = Array(repeating: Particle(), count: Int(ParticleSettings.particleCount))
         GameController.particleBuffer = Renderer.device.makeBuffer(bytes: &particles, length: MemoryLayout<Particle>.stride*Int(ParticleSettings.particleCount))
         var pointer = GameController.particleBuffer.contents().bindMemory(to: Particle.self, capacity: Int(ParticleSettings.particleCount))
         for _ in particles {
-            pointer.pointee.position = [Float.random(in: -1...1), Float.random(in: -1...1), Float.random(in: -1...1)]
+            pointer.pointee.position = [Float.random(in: -3...3), Float.random(in: 0...3), Float.random(in: -3...3)+10]
             pointer = pointer.advanced(by: 1)
         }
     
+    }
+    func update(deltaTime : Float){
+        var pointer = GameController.particleBuffer.contents().bindMemory(to: Particle.self, capacity: Int(ParticleSettings.particleCount))
+        for _ in particles {
+            
+            pointer.pointee.currentForce = [0, -9.81, 0]
+            pointer.pointee.velocity += pointer.pointee.currentForce * deltaTime
+            pointer.pointee.position += pointer.pointee.velocity * deltaTime
+            
+            if (pointer.pointee.position.y < 0){
+                pointer.pointee.position.y += abs(pointer.pointee.position.y)
+                pointer.pointee.velocity.y *= -1
+            }
+            
+            
+            pointer = pointer.advanced(by: 1)
+        }
+        
     }
     
     
@@ -48,7 +69,12 @@ extension GameController : MTKViewDelegate{
     
     func draw(in view: MTKView) {
         
-        renderer.render(view: view)
+        let currentTime = CFAbsoluteTimeGetCurrent()
+        let deltaTime = Float(currentTime - lastTime)
+        lastTime = currentTime
+        
+        self.update(deltaTime: deltaTime)
+        renderer.render(view: view, deltaTime: deltaTime)
         
         
         
