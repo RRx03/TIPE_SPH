@@ -1,10 +1,3 @@
-//
-//  Shader.metal
-//  TIPE_SPH
-//
-//  Created by Roman Roux on 31/08/2023.
-//
-
 #include <metal_stdlib>
 #include "../Common.h"
 using namespace metal;
@@ -25,21 +18,17 @@ struct VertexOut
 
 };
 
-vertex VertexOut draw(const VertexIn vertexIn [[stage_in]],
-                             constant Particle *particles [[buffer(1)]],
-                             constant Uniforms &uniforms [[buffer(11)]],
-                             uint instanceid [[instance_id]])
+vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]])
 {
     
     VertexOut out;
     out.position = vertexIn.position;
     out.normal = vertexIn.normal;
-    
     return out;
 }
 
-fragment float4 fragment_main(VertexOut vertexIn [[stage_in]], constant Params &params [[buffer(12)]])
+fragment float4 Fragment(VertexOut vertexIn [[stage_in]])
 {
     
-    return float4(float3(1), 1);
+    return float4(1);
 }
