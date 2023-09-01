@@ -25,7 +25,7 @@ class GameController : NSObject {
         initParticles()
         
         
-        
+
         
     }
     func initParticles(){
@@ -53,7 +53,4 @@ extension GameController : MTKViewDelegate{
         
         
     }
-    
-    
-    
 }
