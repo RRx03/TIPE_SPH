@@ -32,14 +32,22 @@ class GameController : NSObject {
         
     }
     func initParticles(){
-        particles = Array(repeating: Particle(), count: Int(ParticleSettings.particleCount))
+        
+        for y in 0..<ParticleSettings.gridPopulation[1] {
+            for x in 0..<ParticleSettings.gridPopulation[0] {
+                for z in 0..<ParticleSettings.gridPopulation[2] {
+                    particles.append(Particle(position: [
+                        Float(x)*ParticleSettings.gridSpacing[0]+ParticleSettings.gridPosition[0]+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
+                        Float(y)*ParticleSettings.gridSpacing[1]+ParticleSettings.gridPosition[1]+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
+                        Float(z)*ParticleSettings.gridSpacing[2]+ParticleSettings.gridPosition[2]+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger)
+                    ], velocity: [0, 0, 0], currentForce: [0, 0, 0], pressure: 0, density: 0))
+                }
+            }
+        }
         GameController.particleBuffer = Renderer.device.makeBuffer(bytes: &particles, length: MemoryLayout<Particle>.stride*Int(ParticleSettings.particleCount))
         var pointer = GameController.particleBuffer.contents().bindMemory(to: Particle.self, capacity: Int(ParticleSettings.particleCount))
         for _ in particles {
-            pointer.pointee.position = [Float.random(in: -ParticleSettings.gridSize[0]...ParticleSettings.gridSize[0]) +
-                                        ParticleSettings.gridCenterPosition[0],
-                                        Float.random(in: -ParticleSettings.gridSize[1]...ParticleSettings.gridSize[1]) + ParticleSettings.gridCenterPosition[1],
-                                        Float.random(in: -ParticleSettings.gridSize[2]...ParticleSettings.gridSize[2]) + ParticleSettings.gridCenterPosition[2]]
+            pointer.pointee.density = 0
             pointer = pointer.advanced(by: 1)
         }
     
@@ -54,7 +62,7 @@ class GameController : NSObject {
             
             if (pointer.pointee.position.y < 0){
                 pointer.pointee.position.y += abs(pointer.pointee.position.y) //ajouter collision continues la c'est fu**ed up
-                pointer.pointee.velocity.y *= -1
+                pointer.pointee.velocity.y *= -Float(ParticleSettings.bouncingCoefficient)
             }
             
             
