@@ -14,7 +14,7 @@ enum Settings{
     static var fov : Float = 70
     static var nearPlan : Float = 0.1
     static var farPlan : Float = 100
-    
+ 
     
 }
 
