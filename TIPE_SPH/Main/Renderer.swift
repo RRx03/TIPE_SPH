@@ -90,6 +90,7 @@ class Renderer : NSObject {
         uniforms.particleVolume = ParticleSettings.Volume
         uniforms.particleRestDensity = ParticleSettings.restDensity
         uniforms.particleGazConstant = ParticleSettings.gazConstant
+        uniforms.particleRadius = ParticleSettings.radius
         uniforms.hConst = ParticleSettings.h
         uniforms.hConst2 = pow(ParticleSettings.h, 2)
         uniforms.hConst9 = pow(ParticleSettings.h, 9)

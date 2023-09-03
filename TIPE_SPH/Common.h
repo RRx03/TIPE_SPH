@@ -20,6 +20,7 @@ typedef struct {
     float particleGazConstant;
     float particleRestDensity;
     float particleVolume;
+    float particleRadius;
     float hConst;
     float hConst2;
     float hConst9;

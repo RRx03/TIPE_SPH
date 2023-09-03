@@ -52,7 +52,12 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     Particle particle = particles[id];
     
     particle.acceleration = float3(0, 0, 0);
+    particle.acceleration += float3(0, -9.81, 0);
+    particle.velocity += particle.acceleration*uniforms.deltaTime;
+
     
+    float3 velocityResultante = float3(0, 0, 0);
+
     for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
         
         if(otherParticleID == id){
@@ -62,8 +67,9 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         Particle otherParticle = particles[otherParticleID];
         float3 diff = otherParticle.position - particle.position;
         float dist = length(diff);
-        if(dist < uniforms.hConst){
-            particle.velocity += -normalize(diff)*dot(particle.velocity,diff) + normalize(diff)*dot(otherParticle.velocity, diff);
+        if(dist < uniforms.particleRadius*2){
+            velocityResultante += -normalize(diff)*dot(particle.velocity,diff) + (normalize(diff)*dot(otherParticle.velocity, diff))*uniforms.particleBouncingCoefficient;
+            particle.position += normalize(diff)*(dist-2*uniforms.particleRadius);
         }
         
     }
@@ -71,10 +77,8 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     
     
     
-    
-    
-    particle.acceleration += float3(0, -9.81, 0);
-    particle.velocity += particle.acceleration*uniforms.deltaTime;
+    particle.velocity += velocityResultante;
+
     particle.position += particle.velocity*uniforms.deltaTime;
     
     if(particle.position.x < uniforms.containerPosition.x){
