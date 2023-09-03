@@ -45,10 +45,6 @@ class GameController : NSObject {
             }
         }
         GameController.particleBuffer = Renderer.device.makeBuffer(bytes: &particles, length: MemoryLayout<Particle>.stride*Int(ParticleSettings.particleCount))
-//        var pointer = GameController.particleBuffer.contents().bindMemory(to: Particle.self, capacity: Int(ParticleSettings.particleCount))
-//        for _ in particles {
-//            pointer = pointer.advanced(by: 1)
-//        }
     
     }
     

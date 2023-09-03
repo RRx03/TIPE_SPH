@@ -9,8 +9,11 @@ typedef struct {
     matrix_float4x4 projectionMatrix;
     
     float deltaTime;
+    
     float particleMass;
     float particleBouncingCoefficient;
+    float particleViscosity;
+    float particleRestDensity;
     
     
 } Uniforms;

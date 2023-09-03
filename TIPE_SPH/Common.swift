@@ -28,6 +28,10 @@ enum ParticleSettings{
     static var gridSpacing : [Float] = [0.1, 0.1, 0.1]
     static var gridPosition : [Float] = [0, 2, 0]
     static var particleCount : Int32 {return Int32(gridPopulation[0]*gridPopulation[1]*gridPopulation[2])}
+    
+    static var mass : Float = 1
+    static var bouncingCoefficient : Float = 0.8
+    static var bouncingCoefficient : Float = 0.8
 
 
 }

@@ -79,8 +79,10 @@ class Renderer : NSObject {
         var projectionMatrix: float4x4 {float4x4(projectionFov: Settings.fov, near: Settings.nearPlan, far: Settings.farPlan, aspect: Float(params.width)/Float(params.height))}
         uniforms.projectionMatrix = projectionMatrix
         uniforms.viewMatrix = float4x4(rotationX: -Float.pi/10) * float4x4(translation: [0, 4, -8]).inverse //Camera Position
-        uniforms.particleMass = 1;
-        uniforms.particleBouncingCoefficient = 0.8;
+        
+        
+        uniforms.particleMass = ParticleSettings.mass;
+        uniforms.particleBouncingCoefficient = ParticleSettings.bouncingCoefficient;
         
 
     }
