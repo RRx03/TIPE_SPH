@@ -31,7 +31,6 @@ enum ParticleSettings{
     
     static var mass : Float = 1
     static var bouncingCoefficient : Float = 0.8
-    static var bouncingCoefficient : Float = 0.8
 
 
 }
