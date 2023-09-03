@@ -9,6 +9,10 @@ typedef struct {
     matrix_float4x4 projectionMatrix;
     
     float deltaTime;
+    float particleMass;
+    float particleBouncingCoefficient;
+    
+    
 } Uniforms;
 
 
@@ -24,7 +28,6 @@ typedef struct {
     simd_float3 acceleration;
     float pressure;
     float density;
-    float mass;
     
 
 } Particle;

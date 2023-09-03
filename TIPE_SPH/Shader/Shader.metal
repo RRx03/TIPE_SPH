@@ -50,9 +50,15 @@ fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &param
 kernel void updateParticles(device Particle *particles [[buffer(1)]], constant Uniforms &uniforms [[buffer(11)]],  uint id [[thread_position_in_grid]]){
     Particle particle = particles[id];
     
-    particle.acceleration = float3(0, -9.81*particle.mass, 0);
-    particle.velocity += particle.acceleration/particle.mass*uniforms.deltaTime;
+    particle.acceleration = float3(0, -9.81*uniforms.particleMass, 0);
+    particle.velocity += particle.acceleration/uniforms.particleMass*uniforms.deltaTime;
     particle.position += particle.velocity*uniforms.deltaTime;
+    
+    if(particle.position.y <0){
+        particle.position.y = 0;
+        particle.velocity.y *= -uniforms.particleBouncingCoefficient;
+        
+    }
     
     particles[id] = particle;
 }

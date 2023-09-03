@@ -2,6 +2,8 @@ import MetalKit
 
 
 class Renderer : NSObject {
+    
+    
     static var device : MTLDevice!
     static var commandQueue : MTLCommandQueue!
     static var library : MTLLibrary!
@@ -15,20 +17,12 @@ class Renderer : NSObject {
     var uniforms : Uniforms = Uniforms()
     var params : Params = Params()
     
-
-    
-    
     var mesh : MTKMesh
     
-    static func buildDepthStencilState() -> MTLDepthStencilState? {
-        let descriptor = MTLDepthStencilDescriptor()
-        descriptor.depthCompareFunction = .less
-        descriptor.isDepthWriteEnabled = true
-        return Renderer.device.makeDepthStencilState(
-            descriptor: descriptor)
-    }
+   
     
     init(metalView : MTKView){
+        //MARK: - Basic Definitions
         let device = MTLCreateSystemDefaultDevice()
         let commandQueue = device?.makeCommandQueue()
         Renderer.device = device
@@ -37,7 +31,7 @@ class Renderer : NSObject {
 
         
         
-        
+        //MARK: - Loading the Particle Mesh (maybe create a struct for it)
         var mtkMesh: MTKMesh
         let allocator = MTKMeshBufferAllocator(device: Renderer.device)
         let sphereMesh = MDLMesh(sphereWithExtent: [ParticleSettings.radius, ParticleSettings.radius, ParticleSettings.radius],
@@ -55,6 +49,8 @@ class Renderer : NSObject {
         
         super.init()
         
+        
+        //MARK: - Creating PSOs (maybe create a new file for this)
         let library = device?.makeDefaultLibrary()
         Renderer.library = library
         let vertex = library?.makeFunction(name: "Vertex")
@@ -76,15 +72,27 @@ class Renderer : NSObject {
         }
         
         
-        uniforms.viewMatrix = float4x4(rotationX: -Float.pi/10) * float4x4(translation: [0, 4, -8]).inverse
+        
+        //MARK: - Defining Settings
         params.width = Float(Settings.width)
         params.height = Float(Settings.height)
-        
         var projectionMatrix: float4x4 {float4x4(projectionFov: Settings.fov, near: Settings.nearPlan, far: Settings.farPlan, aspect: Float(params.width)/Float(params.height))}
         uniforms.projectionMatrix = projectionMatrix
+        uniforms.viewMatrix = float4x4(rotationX: -Float.pi/10) * float4x4(translation: [0, 4, -8]).inverse //Camera Position
+        uniforms.particleMass = 1;
+        uniforms.particleBouncingCoefficient = 0.8;
         
 
     }
+    
+    static func buildDepthStencilState() -> MTLDepthStencilState? {
+        let descriptor = MTLDepthStencilDescriptor()
+        descriptor.depthCompareFunction = .less
+        descriptor.isDepthWriteEnabled = true
+        return Renderer.device.makeDepthStencilState(
+            descriptor: descriptor)
+    }
+    
     func render(view : MTKView, deltaTime : Float){
         guard let commandRenderBuffer = Renderer.commandQueue.makeCommandBuffer() else {return}
         guard let renderPass = view.currentRenderPassDescriptor else {return}
@@ -132,13 +140,7 @@ class Renderer : NSObject {
                 instanceCount: Int(ParticleSettings.particleCount))
         
         
-        
-        
-        
         renderEncoder.endEncoding()
-        
-        
- 
         
         
         guard let drawable = view.currentDrawable else {return}
