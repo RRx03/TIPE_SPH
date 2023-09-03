@@ -76,7 +76,7 @@ class Renderer : NSObject {
         }
         
         
-        
+        uniforms.viewMatrix = float4x4(rotationX: -Float.pi/10) * float4x4(translation: [0, 4, -8]).inverse
         params.width = Float(Settings.width)
         params.height = Float(Settings.height)
         
@@ -89,33 +89,32 @@ class Renderer : NSObject {
         guard let commandRenderBuffer = Renderer.commandQueue.makeCommandBuffer() else {return}
         guard let renderPass = view.currentRenderPassDescriptor else {return}
         guard let renderEncoder = commandRenderBuffer.makeRenderCommandEncoder(descriptor:renderPass) else {return}
-
-        
-   
-        uniforms.deltaTime = deltaTime
-        uniforms.viewMatrix = float4x4(rotationX: -Float.pi/10) * float4x4(translation: [0, 4, -8]).inverse
-        
-        
-        
         guard let commandComputeBuffer = Renderer.commandQueue.makeCommandBuffer() else {return}
         guard let computeEncoder: MTLComputeCommandEncoder = commandComputeBuffer.makeComputeCommandEncoder() else {return}
+
+        uniforms.deltaTime = deltaTime
+        
+        //MARK: - Computing
 
         computeEncoder.setComputePipelineState(computePipelineState)
         
         let w: Int = computePipelineState.threadExecutionWidth
+        let threadsPerGrid = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
+        let threadsPerThreadgroup = MTLSize(width: w, height: 1, depth: 1)
+        
+        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
         computeEncoder.setBuffer(GameController.particleBuffer, offset: 0, index: 1)
-        var threadsPerGrid = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
-        var threadsPerThreadgroup = MTLSize(width: w, height: 1, depth: 1)
         computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
         
         computeEncoder.endEncoding()
         commandComputeBuffer.commit()
         commandComputeBuffer.waitUntilCompleted()
         
+        //MARK: - Rendering
+        
         
         renderEncoder.setDepthStencilState(depthStencilState)
         renderEncoder.setRenderPipelineState(renderPipelineState)
-        
         
         let submesh = mesh.submeshes[0]
         
