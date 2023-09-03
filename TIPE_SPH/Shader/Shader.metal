@@ -23,6 +23,7 @@ matrix_float4x4 translationMatrix(float3 translation){
     
 }
 
+
 vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]],
                         constant Particle *particles [[buffer(1)]],
                         constant Uniforms &uniforms [[buffer(11)]],
@@ -46,36 +47,26 @@ fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &param
     return float4(float3(1)*iso, 1);
 }
 
-float Weight(float dist, float hConst2, float hConst9){
-    
-    return 315*pow((hConst2-pow(dist, 2)), 3)/(64*M_PI_F*hConst9);
-    
-}
 
 kernel void updateParticles(device Particle *particles [[buffer(1)]], constant Uniforms &uniforms [[buffer(11)]],  uint id [[thread_position_in_grid]]){
     Particle particle = particles[id];
     
     particle.acceleration = float3(0, 0, 0);
-    particle.density = 0;
-    particle.pressure = 0;
-    particle.viscosity = 0;
-
     
     for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
+        
         if(otherParticleID == id){
             continue;
         }
+        
         Particle otherParticle = particles[otherParticleID];
         float3 diff = otherParticle.position - particle.position;
         float dist = length(diff);
         if(dist < uniforms.hConst){
-            particle.density += uniforms.particleVolume*otherParticle.density*Weight(dist, uniforms.hConst2, uniforms.hConst9);
+            particle.velocity += -normalize(diff)*dot(particle.velocity,diff) + normalize(diff)*dot(otherParticle.velocity, diff);
         }
         
     }
-    
-    
-    particle.pressure = uniforms.particleGazConstant*(particle.density - uniforms.particleRestDensity);
     
     
     
@@ -120,3 +111,8 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     particles[id] = particle;
 }
 
+float Weight(float dist, float hConst2, float hConst9){
+    
+    return 315*pow((hConst2-pow(dist, 2)), 3)/(64*M_PI_F*hConst9);
+    
+}
