@@ -83,6 +83,17 @@ class Renderer : NSObject {
         
         uniforms.particleMass = ParticleSettings.mass;
         uniforms.particleBouncingCoefficient = ParticleSettings.bouncingCoefficient;
+        uniforms.containerSize = simd_float3(ParticleSettings.containerSize)
+        uniforms.containerPosition = simd_float3(ParticleSettings.containerPosition)
+        uniforms.particleCount = ParticleSettings.particleCount
+        
+        uniforms.particleVolume = ParticleSettings.Volume
+        uniforms.particleRestDensity = ParticleSettings.restDensity
+        uniforms.particleGazConstant = ParticleSettings.gazConstant
+        uniforms.hConst = ParticleSettings.h
+        uniforms.hConst2 = pow(ParticleSettings.h, 2)
+        uniforms.hConst9 = pow(ParticleSettings.h, 9)
+
         
 
     }
