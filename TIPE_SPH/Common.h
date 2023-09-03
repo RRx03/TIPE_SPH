@@ -5,11 +5,17 @@
 #import <simd/simd.h>
 
 typedef struct {
-    matrix_float4x4 modelMatrix;
     matrix_float4x4 viewMatrix;
     matrix_float4x4 projectionMatrix;
-    matrix_float3x3 normalMatrix;
+    
     float deltaTime;
+    
+    float particleMass;
+    float particleBouncingCoefficient;
+    float particleViscosity;
+    float particleRestDensity;
+    
+    
 } Uniforms;
 
 
@@ -22,7 +28,7 @@ typedef struct {
 typedef struct {
     simd_float3 position;
     simd_float3 velocity;
-    simd_float3 currentForce;
+    simd_float3 acceleration;
     float pressure;
     float density;
     
