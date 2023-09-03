@@ -7,6 +7,8 @@ class Renderer : NSObject {
     static var library : MTLLibrary!
     
     var renderPipelineState : MTLRenderPipelineState!
+    var computePipelineState : MTLComputePipelineState!
+
     let depthStencilState: MTLDepthStencilState?
 
     
@@ -57,6 +59,7 @@ class Renderer : NSObject {
         Renderer.library = library
         let vertex = library?.makeFunction(name: "Vertex")
         let fragment = library?.makeFunction(name: "Fragment")
+        let kernel = library?.makeFunction(name: "updateParticles")
         let renderPipelineStateDescriptor = MTLRenderPipelineDescriptor()
         renderPipelineStateDescriptor.vertexFunction = vertex
         renderPipelineStateDescriptor.fragmentFunction = fragment
@@ -67,6 +70,7 @@ class Renderer : NSObject {
         
         do {
             renderPipelineState = try Renderer.device.makeRenderPipelineState(descriptor: renderPipelineStateDescriptor)
+            computePipelineState = try Renderer.device.makeComputePipelineState(function: kernel!)
         }catch{
             fatalError("Fail")
         }
@@ -82,23 +86,39 @@ class Renderer : NSObject {
 
     }
     func render(view : MTKView, deltaTime : Float){
-        guard let commandBuffer = Renderer.commandQueue.makeCommandBuffer() else {return}
+        guard let commandRenderBuffer = Renderer.commandQueue.makeCommandBuffer() else {return}
         guard let renderPass = view.currentRenderPassDescriptor else {return}
-        guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor:renderPass) else {return}
+        guard let renderEncoder = commandRenderBuffer.makeRenderCommandEncoder(descriptor:renderPass) else {return}
+
         
    
+        uniforms.deltaTime = deltaTime
+        uniforms.viewMatrix = float4x4(rotationX: -Float.pi/10) * float4x4(translation: [0, 4, -8]).inverse
+        
+        
+        
+        guard let commandComputeBuffer = Renderer.commandQueue.makeCommandBuffer() else {return}
+        guard let computeEncoder: MTLComputeCommandEncoder = commandComputeBuffer.makeComputeCommandEncoder() else {return}
+
+        computeEncoder.setComputePipelineState(computePipelineState)
+        
+        let w: Int = computePipelineState.threadExecutionWidth
+        computeEncoder.setBuffer(GameController.particleBuffer, offset: 0, index: 1)
+        var threadsPerGrid = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
+        var threadsPerThreadgroup = MTLSize(width: w, height: 1, depth: 1)
+        computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+        
+        computeEncoder.endEncoding()
+        commandComputeBuffer.commit()
+        commandComputeBuffer.waitUntilCompleted()
+        
         
         renderEncoder.setDepthStencilState(depthStencilState)
         renderEncoder.setRenderPipelineState(renderPipelineState)
         
         
-        uniforms.deltaTime = deltaTime
-        uniforms.viewMatrix = float4x4(rotationX: -Float.pi/10) * float4x4(translation: [0, 4, -8]).inverse
-
-        
         let submesh = mesh.submeshes[0]
         
-
         renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
         renderEncoder.setFragmentBytes(&params, length: MemoryLayout<Params>.stride, index: 12)
         renderEncoder.setVertexBuffer(mesh.vertexBuffers[0].buffer, offset: 0, index: 0)
@@ -117,9 +137,15 @@ class Renderer : NSObject {
         
         
         renderEncoder.endEncoding()
+        
+        
+ 
+        
+        
         guard let drawable = view.currentDrawable else {return}
-        commandBuffer.present(drawable)
-        commandBuffer.commit()
+        commandRenderBuffer.present(drawable)
+        commandRenderBuffer.commit()
+
         
     }
     

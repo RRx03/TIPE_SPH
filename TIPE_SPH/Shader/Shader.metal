@@ -24,7 +24,7 @@ matrix_float4x4 translationMatrix(float3 translation){
 }
 
 vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]],
-                        device Particle *particles [[buffer(1)]],
+                        constant Particle *particles [[buffer(1)]],
                         constant Uniforms &uniforms [[buffer(11)]],
                         uint instanceid [[instance_id]])
 {
@@ -47,5 +47,8 @@ fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &param
 }
 
 
-kernel void updateParticles(){ // Maybe Metal Performance shader
+kernel void updateParticles(device Particle *particles [[buffer(1)]], uint id [[thread_position_in_grid]]){
+    Particle particle = particles[id];
+    
+    particles[id] = particle;
 }
