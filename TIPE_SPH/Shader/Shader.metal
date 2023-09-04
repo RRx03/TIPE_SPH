@@ -2,7 +2,7 @@
 #include "../Common.h"
 using namespace metal;
 
-
+#define applyBorderCollision false
 
 
 struct VertexIn
@@ -81,12 +81,12 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
 
     particle.position += particle.velocity*uniforms.deltaTime;
     
-    if(particle.position.x < uniforms.containerPosition.x){
+    if(particle.position.x < uniforms.containerPosition.x && applyBorderCollision){
         particle.position.x = uniforms.containerPosition.x;
         particle.velocity.x *= -uniforms.particleBouncingCoefficient;
         
     }
-    else if(particle.position.x > uniforms.containerPosition.x+uniforms.containerSize.x){
+    else if(particle.position.x > uniforms.containerPosition.x+uniforms.containerSize.x && applyBorderCollision){
         particle.position.x = uniforms.containerPosition.x+uniforms.containerSize.x;
         particle.velocity.x *= -uniforms.particleBouncingCoefficient;
         
@@ -101,12 +101,12 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         particle.velocity.y *= -uniforms.particleBouncingCoefficient;
         
     }
-    if(particle.position.z < uniforms.containerPosition.z){
+    if(particle.position.z < uniforms.containerPosition.z && applyBorderCollision){
         particle.position.z = uniforms.containerPosition.z;
         particle.velocity.z *= -uniforms.particleBouncingCoefficient;
         
     }
-    else if(particle.position.z > uniforms.containerPosition.z+uniforms.containerSize.z){
+    else if(particle.position.z > uniforms.containerPosition.z+uniforms.containerSize.z && applyBorderCollision){
         particle.position.z = uniforms.containerPosition.z+uniforms.containerSize.z;
         particle.velocity.z *= -uniforms.particleBouncingCoefficient;
         
