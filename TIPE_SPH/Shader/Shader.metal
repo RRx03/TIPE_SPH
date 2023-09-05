@@ -125,6 +125,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     particle.velocity += particle.acceleration*uniforms.deltaTime/uniforms.particleMass;
     particle.velocity += velocityResultante*uniforms.particleBouncingCoefficient;
     particle.position += particle.velocity*uniforms.deltaTime;
+    
     particles[id] = particle;
 }
 
