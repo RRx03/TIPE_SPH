@@ -24,6 +24,9 @@ typedef struct {
     float hConst;
     float hConst2;
     float hConst9;
+    float airFrictionCoefficient;
+    float groundFrictionCoefficient;
+
     
     
 } Uniforms;

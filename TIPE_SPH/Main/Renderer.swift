@@ -91,6 +91,7 @@ class Renderer : NSObject {
         uniforms.particleRestDensity = ParticleSettings.restDensity
         uniforms.particleGazConstant = ParticleSettings.gazConstant
         uniforms.particleRadius = ParticleSettings.radius
+        uniforms.groundFrictionCoefficient = ParticleSettings.groundFrictionCoefficient
         uniforms.hConst = ParticleSettings.h
         uniforms.hConst2 = pow(ParticleSettings.h, 2)
         uniforms.hConst9 = pow(ParticleSettings.h, 9)

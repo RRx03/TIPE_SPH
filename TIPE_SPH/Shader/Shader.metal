@@ -52,9 +52,10 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     Particle particle = particles[id];
     
     particle.acceleration = float3(0, 0, 0);
-    particle.acceleration += float3(0, -9.81, 0);
+    particle.acceleration += float3(0, -9.81*uniforms.particleMass, 0);
 
     float3 velocityResultante = float3(0, 0, 0);
+    bool collisionned = false;
 
     for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
         
@@ -62,13 +63,15 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
             continue;
         }
         
-        Particle otherParticle = particles[otherParticleID]; //repulsion instead of collision ?
+        Particle otherParticle = particles[otherParticleID];
         float3 diff = otherParticle.position - particle.position;
         float dist = length(diff);
+        float3 Ndiff = normalize(diff);
         if(dist < uniforms.particleRadius*2){
-            velocityResultante += (-normalize(diff)*dot(particle.velocity,normalize(diff)) + normalize(diff)*dot(otherParticle.velocity, normalize(diff)))*uniforms.particleBouncingCoefficient;
-            //particle.acceleration -= dot(particle.acceleration, normalize(diff)*particle.acceleration);
-            particle.position += normalize(diff)*(dist-2*uniforms.particleRadius);
+            velocityResultante += -Ndiff*dot(particle.velocity,Ndiff) + (-Ndiff*dot(otherParticle.velocity, -Ndiff));
+            particle.position += Ndiff*(dist-2*uniforms.particleRadius);
+            collisionned = true;
+            
         }
         
     }
@@ -77,59 +80,51 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     
 
     
-    float3 CollisionPoint = float3(0, 0, 0);
     if(particle.position.x < uniforms.containerPosition.x && applyBorderCollision){
-        CollisionPoint += float3(-1, 0, 0);
-        
+        collisionned = true;
         particle.position.x = uniforms.containerPosition.x;
         particle.velocity.x *= -uniforms.particleBouncingCoefficient;
         
     }
     else if(particle.position.x > uniforms.containerPosition.x+uniforms.containerSize.x && applyBorderCollision){
-        CollisionPoint += float3(1, 0, 0);
-        
+        collisionned = true;
         particle.position.x = uniforms.containerPosition.x+uniforms.containerSize.x;
         particle.velocity.x *= -uniforms.particleBouncingCoefficient;
         
     }
     if(particle.position.y < uniforms.containerPosition.y){
-        CollisionPoint += float3(0, -1, 0);
-        
+        collisionned = true;
         particle.position.y = uniforms.containerPosition.y;
         particle.velocity.y *= -uniforms.particleBouncingCoefficient;
         
     }
     else if(particle.position.y > uniforms.containerPosition.y+uniforms.containerSize.y){
-        CollisionPoint += float3(0, 1, 0);
-        
+        collisionned = true;
         particle.position.y = uniforms.containerPosition.y+uniforms.containerSize.y;
         particle.velocity.y *= -uniforms.particleBouncingCoefficient;
         
     }
     if(particle.position.z < uniforms.containerPosition.z && applyBorderCollision){
-        CollisionPoint += float3(0, 0, -1);
-        
+        collisionned = true;
         particle.position.z = uniforms.containerPosition.z;
         particle.velocity.z *= -uniforms.particleBouncingCoefficient;
         
     }
     else if(particle.position.z > uniforms.containerPosition.z+uniforms.containerSize.z && applyBorderCollision){
-        CollisionPoint += float3(0, 0, 1);
-        
+        collisionned = true;
         particle.position.z = uniforms.containerPosition.z+uniforms.containerSize.z;
         particle.velocity.z *= -uniforms.particleBouncingCoefficient;
         
     }
-    float3 CollisionDiff = CollisionPoint - particle.position;
-    particle.acceleration -= float3(dot(float3(1, 0, 0), particle.acceleration), dot(float3(0, 1, 0), particle.acceleration), dot(float3(0, 0, 1), particle.acceleration));
     
-    
-    
-    particle.velocity += particle.acceleration*uniforms.deltaTime; //refaire tous les essaie car cette ligne n'etait pas au bon endroit
-    particle.velocity += velocityResultante;
+    float groundFrictionAllowed = 0;
+    if (collisionned){
+        groundFrictionAllowed = 1;
+    }
+    particle.acceleration -= pow(particle.velocity*uniforms.deltaTime, 1)*(1.293*0.47*M_PI_F*pow(uniforms.particleRadius, 2)/2 + groundFrictionAllowed*uniforms.groundFrictionCoefficient);
+    particle.velocity += particle.acceleration*uniforms.deltaTime/uniforms.particleMass;
+    particle.velocity += velocityResultante*uniforms.particleBouncingCoefficient;
     particle.position += particle.velocity*uniforms.deltaTime;
-    
-    
     particles[id] = particle;
 }
 
