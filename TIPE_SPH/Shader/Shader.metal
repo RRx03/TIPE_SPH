@@ -48,15 +48,17 @@ fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &param
     return float4(float3(1)*iso, 1);
 }
 
+float W(float r, float h, float h2){
+    
+    return pow((1/(h*sqrt(M_PI_F))), 3)*exp(-(pow(r/h, 2)));
+    
+}
 
 kernel void updateParticles(device Particle *particles [[buffer(1)]], constant Uniforms &uniforms [[buffer(11)]],  uint id [[thread_position_in_grid]]){
     Particle particle = particles[id];
     
     particle.acceleration = float3(0, 0, 0);
     particle.acceleration += float3(0, -9.81*uniforms.particleMass, 0);
-
-    float3 velocityResultante = float3(0, 0, 0);
-    bool collisionned = false;
 
     for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
         
@@ -69,9 +71,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         float dist = length(diff);
         float3 Ndiff = normalize(diff);
         if(dist < uniforms.particleRadius*2){
-            velocityResultante += -Ndiff*dot(particle.velocity,Ndiff) + (-Ndiff*dot(otherParticle.velocity, -Ndiff));
-            particle.position += Ndiff*(dist-2*uniforms.particleRadius);
-            collisionned = true;
+            
             
         }
         
@@ -79,59 +79,41 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     
     
     
-
-    
     if(particle.position.x < uniforms.containerPosition.x && applyBorderCollision){
-        collisionned = true;
         particle.position.x = uniforms.containerPosition.x;
         particle.velocity.x *= -uniforms.particleBouncingCoefficient;
         
     }
     else if(particle.position.x > uniforms.containerPosition.x+uniforms.containerSize.x && applyBorderCollision){
-        collisionned = true;
         particle.position.x = uniforms.containerPosition.x+uniforms.containerSize.x;
         particle.velocity.x *= -uniforms.particleBouncingCoefficient;
         
     }
     if(particle.position.y < uniforms.containerPosition.y){
-        collisionned = true;
         particle.position.y = uniforms.containerPosition.y;
         particle.velocity.y *= -uniforms.particleBouncingCoefficient;
         
     }
     else if(particle.position.y > uniforms.containerPosition.y+uniforms.containerSize.y){
-        collisionned = true;
         particle.position.y = uniforms.containerPosition.y+uniforms.containerSize.y;
         particle.velocity.y *= -uniforms.particleBouncingCoefficient;
         
     }
     if(particle.position.z < uniforms.containerPosition.z && applyBorderCollision){
-        collisionned = true;
         particle.position.z = uniforms.containerPosition.z;
         particle.velocity.z *= -uniforms.particleBouncingCoefficient;
         
     }
     else if(particle.position.z > uniforms.containerPosition.z+uniforms.containerSize.z && applyBorderCollision){
-        collisionned = true;
         particle.position.z = uniforms.containerPosition.z+uniforms.containerSize.z;
         particle.velocity.z *= -uniforms.particleBouncingCoefficient;
         
     }
     
-    float groundFrictionAllowed = 0;
-    if (collisionned){
-        groundFrictionAllowed = 1;
-    }
-    particle.acceleration -= pow(particle.velocity*uniforms.deltaTime, 1)*(1.293*0.47*M_PI_F*pow(uniforms.particleRadius, 2)/2 + groundFrictionAllowed*uniforms.groundFrictionCoefficient);
     particle.velocity += particle.acceleration*uniforms.deltaTime/uniforms.particleMass;
-    particle.velocity += velocityResultante*uniforms.particleBouncingCoefficient;
     particle.position += particle.velocity*uniforms.deltaTime;
     
     particles[id] = particle;
 }
 
-float Weight(float dist, float hConst2, float hConst9){
-    
-    return 315*pow((hConst2-pow(dist, 2)), 3)/(64*M_PI_F*hConst9);
-    
-}
+
