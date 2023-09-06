@@ -21,7 +21,6 @@ enum Settings{
 enum ParticleSettings{
     static var h : Float = 0.1
     static var radius : Float = 0.01
-    static var Volume : Float = 1
     static var meshPrecision : UInt32 = 10
     
     static var spawnJigger : Float = 0.01
@@ -37,7 +36,8 @@ enum ParticleSettings{
     static var gazConstant : Float = 1
     static var restDensity : Float = 1
     static var bouncingCoefficient : Float = 0.5
-    static var groundFrictionCoefficient : Float = 100
+    
+    static var vmax : Float = 100;
 
 
 }

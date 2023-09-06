@@ -19,14 +19,10 @@ typedef struct {
     float particleViscosity;
     float particleGazConstant;
     float particleRestDensity;
-    float particleVolume;
     float particleRadius;
-    float hConst;
-    float hConst2;
-    float hConst9;
-    float airFrictionCoefficient;
-    float groundFrictionCoefficient;
-
+    float h;
+    float h2;
+    float vmax;
     
     
 } Uniforms;

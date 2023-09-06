@@ -87,14 +87,12 @@ class Renderer : NSObject {
         uniforms.containerPosition = simd_float3(ParticleSettings.containerPosition)
         uniforms.particleCount = ParticleSettings.particleCount
         
-        uniforms.particleVolume = ParticleSettings.Volume
         uniforms.particleRestDensity = ParticleSettings.restDensity
         uniforms.particleGazConstant = ParticleSettings.gazConstant
         uniforms.particleRadius = ParticleSettings.radius
-        uniforms.groundFrictionCoefficient = ParticleSettings.groundFrictionCoefficient
-        uniforms.hConst = ParticleSettings.h
-        uniforms.hConst2 = pow(ParticleSettings.h, 2)
-        uniforms.hConst9 = pow(ParticleSettings.h, 9)
+        uniforms.h = ParticleSettings.h
+        uniforms.h2 = pow(ParticleSettings.h, 2)
+        uniforms.vmax = ParticleSettings.vmax;
 
         
 
