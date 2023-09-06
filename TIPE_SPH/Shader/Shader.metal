@@ -43,9 +43,8 @@ fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &param
     
 #define minLighting 0.1
     float3 light = float3(0, -1, 1);
-    float iso;
-//    iso = max(minLighting, dot(vertexIn.normal, -light)); //Shading
-    iso= 1;
+    float iso = 1;
+    iso = max(minLighting, dot(vertexIn.normal, -light)); //Shading
     return float4(float3(1)*iso, 1);
 }
 
