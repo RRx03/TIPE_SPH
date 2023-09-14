@@ -15,11 +15,13 @@ typedef struct {
     
     int particleCount;
     float particleMass;
-    float particleBouncingCoefficient;
     float particleViscosity;
+    float particlePressure;
+    float particleBouncingCoefficient;
     float particleGazConstant;
     float particleRestDensity;
     float particleRadius;
+    
     float h;
     float h2;
     float vmax;
@@ -38,6 +40,8 @@ typedef struct {
     simd_float3 position;
     simd_float3 velocity;
     simd_float3 acceleration;
+    simd_float3 force;
+    
     float pressure;
     float density;
     float viscosity;

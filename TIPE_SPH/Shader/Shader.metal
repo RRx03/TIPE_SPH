@@ -22,13 +22,11 @@ matrix_float4x4 translationMatrix(float3 translation){
     
 }
 
-
 vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]],
                         constant Particle *particles [[buffer(1)]],
                         constant Uniforms &uniforms [[buffer(11)]],
                         uint instanceid [[instance_id]])
 {
-    
     VertexOut out;
     Particle particle = particles[instanceid];
     out.position =  uniforms.projectionMatrix * uniforms.viewMatrix * translationMatrix(particle.position) * vertexIn.position;
@@ -49,6 +47,7 @@ fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &param
 float W(float r, float h, float h2){
     return pow((1/(h*sqrt(M_PI_F))), 3)*exp(-(pow(r, 2)/h2));
 }
+
 float3 clamp(float3 x, float maxVal){
     float mag = length(x);
     float diff = maxVal/mag;
@@ -63,7 +62,6 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     
     particle.acceleration = float3(0, 0, 0);
     particle.acceleration += float3(0, -9.81*uniforms.particleMass, 0);
-
     
     for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
         
@@ -76,7 +74,6 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         float dist = length(diff);
         
         if(dist < uniforms.particleRadius*2){
-            
             
         }
         
