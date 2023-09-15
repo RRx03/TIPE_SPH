@@ -43,7 +43,7 @@ class GameController : NSObject {
                         Float(x)*gridConstantX+ParticleSettings.gridPosition[0]+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
                         Float(y)*gridConstantY+ParticleSettings.gridPosition[1]+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
                         Float(z)*gridConstantZ+ParticleSettings.gridPosition[2]+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger)
-                    ], velocity: [0, 0, 0], acceleration: [0, 0, 0], pressure: 0, density: 1, viscosity: 0))
+                    ], velocity: [0, 0, 0], acceleration: [0, 0, 0], force: [0, 0, 0], pressure: 0, density: 1, viscosity: 0))
                 }
             }
         }
