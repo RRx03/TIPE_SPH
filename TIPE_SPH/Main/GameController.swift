@@ -32,18 +32,18 @@ class GameController : NSObject {
         
     }
     func initParticles(){
-        let gridConstantX = ParticleSettings.gridSize[0]/Float(ParticleSettings.gridPopulation[0])
-        let gridConstantY = ParticleSettings.gridSize[1]/Float(ParticleSettings.gridPopulation[1])
-        let gridConstantZ = ParticleSettings.gridSize[2]/Float(ParticleSettings.gridPopulation[2])
+        let gridConstantX = (ParticleSettings.gridSize[0])/Float(ParticleSettings.gridPopulation[0])
+        let gridConstantY = (ParticleSettings.gridSize[1])/Float(ParticleSettings.gridPopulation[1])
+        let gridConstantZ = (ParticleSettings.gridSize[2])/Float(ParticleSettings.gridPopulation[2])
 
         for y in 0..<ParticleSettings.gridPopulation[1] {
             for x in 0..<ParticleSettings.gridPopulation[0] {
                 for z in 0..<ParticleSettings.gridPopulation[2] {
                     particles.append(Particle(position: [
-                        Float(x)*gridConstantX+ParticleSettings.gridPosition[0]+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
-                        Float(y)*gridConstantY+ParticleSettings.gridPosition[1]+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
-                        Float(z)*gridConstantZ+ParticleSettings.gridPosition[2]+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger)
-                    ], velocity: [0, 0, 0], acceleration: [0, 0, 0], force: [0, 0, 0], pressure: 0, density: 1, viscosity: 0))
+                        Float(x)*gridConstantX+ParticleSettings.gridPosition[0]-ParticleSettings.gridSize[0]/2+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
+                        Float(y)*gridConstantY+ParticleSettings.gridPosition[1]-ParticleSettings.gridSize[1]/2+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
+                        Float(z)*gridConstantZ+ParticleSettings.gridPosition[2]-ParticleSettings.gridSize[2]/2+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger)
+                    ], velocity: [0, 0, 0], acceleration: [0, 0, 0], forces: [0, 0, 0], pressure: 0, density: 1, viscosity: 0))
                 }
             }
         }
@@ -62,8 +62,11 @@ extension GameController : MTKViewDelegate{
     func draw(in view: MTKView) {
         
         let currentTime = CFAbsoluteTimeGetCurrent()
-        let deltaTime = Float(currentTime - lastTime)
+        var deltaTime = Float(currentTime - lastTime)
         lastTime = currentTime
+        if (Settings.fixedDeltaTime != 0){
+            deltaTime = Settings.fixedDeltaTime
+        }
         renderer.render(view: view, deltaTime: deltaTime)
         
         
