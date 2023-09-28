@@ -16,7 +16,7 @@ enum Settings{
     static var nearPlan : Float = 0.1
     static var farPlan : Float = 100
     static var fixedDeltaTime : Float = 1/60
-    static var gravity : Float = 981
+    static var gravity : Float = 9.81
 
 }
 
