@@ -71,7 +71,6 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
                 particle.forces += (dot(particle.forces,Ndiff) > 0) ? -Ndiff*dot(particle.forces,Ndiff) : 0;
                 particle.forces += (dot(otherParticle.forces,Ndiff) < 0) ? Ndiff*dot(otherParticle.forces,Ndiff) : 0;
                 particle.velocity += -Ndiff*dot(particle.velocity,Ndiff) + (-Ndiff*dot(otherParticle.velocity, -Ndiff))*uniforms.particleBouncingCoefficient;
-                particle.position += Ndiff*(dist-2*uniforms.particleRadius);
             }
         }
     
