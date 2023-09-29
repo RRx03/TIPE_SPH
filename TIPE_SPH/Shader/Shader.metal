@@ -12,7 +12,7 @@ using namespace metal;
 #define forceCollisionMagnitude 9.81
 #define velCollisionMagnitude 0.1
 
-#define turbulenceMag 10
+#define turbulenceMag 0.0001
 
 
 
@@ -104,7 +104,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         }
     }
     if(length(resPos) != 0){
-        particle.forces += -normalize(resPos)*exp(-length(resPos))*turbulenceMag;
+        particle.forces += normalize(resPos)*exp(length(resPos)*turbulenceMag)*turbulenceMag;
     }
     
     if (particle.position.y + particle.velocity.y * updateDeltaTime <= uniforms.particleRadius && groundCollisions)
