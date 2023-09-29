@@ -8,7 +8,7 @@ using namespace metal;
 #define forceCollision true
 #define velCollision false
 
-#define accCollisionMagnitude 9.81
+#define forceCollisionMagnitude 9.81
 #define velCollisionMagnitude 0.1
 
 
@@ -79,16 +79,19 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         Particle otherParticle = particles[otherParticleID];
         float3 diff = otherParticle.position - particle.position;
         float dist = length(diff);
-        float3 Ndiff = normalize(diff);
-        if(dist < uniforms.particleRadius*2){
-            particle.forces += (dot(particle.forces,Ndiff) > 0) ? -Ndiff*dot(particle.forces,Ndiff) : 0;
-            particle.forces += (dot(otherParticle.forces,Ndiff) < 0) ? Ndiff*dot(otherParticle.forces,Ndiff) : 0;
-            particle.velocity += -Ndiff*dot(particle.velocity,Ndiff) + (-Ndiff*dot(otherParticle.velocity, -Ndiff))*uniforms.particleBouncingCoefficient;
-
-            float overlappingDist = abs((dist-2*uniforms.particleRadius));
-            particle.position += -Ndiff*overlappingDist;
-
-
+        if(dist != 0){
+            float3 Ndiff = normalize(diff);
+            if(dist < uniforms.particleRadius*2){
+                particle.forces += (dot(otherParticle.forces,Ndiff) < 0) ? Ndiff*dot(otherParticle.forces,Ndiff) : 0; //ajouter aux otherParticles
+                particle.forces += (dot(particle.forces,Ndiff) > 0) ? -Ndiff*dot(particle.forces,Ndiff) : 0;
+                particle.velocity += -Ndiff*dot(particle.velocity,Ndiff) + (-Ndiff*dot(otherParticle.velocity, -Ndiff))*uniforms.particleBouncingCoefficient;
+                
+                float overlappingDist = abs((dist-2*uniforms.particleRadius));
+                particle.position += -Ndiff*overlappingDist;
+                //ajouter update otherparticles
+                
+                
+            }
         }
     }
     
@@ -115,7 +118,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
             updateDeltaTime -= collisionTime;
         }
         else if (forceCollision){
-            particle.forces.x = accCollisionMagnitude;
+            particle.forces.x = forceCollisionMagnitude;
         }
         else if (velCollision){
             particle.velocity.x = velCollisionMagnitude;
@@ -132,7 +135,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
             updateDeltaTime -= collisionTime;
         }
         else if (forceCollision){
-            particle.forces.x = -accCollisionMagnitude;
+            particle.forces.x = -forceCollisionMagnitude;
         }
         else if (velCollision){
             particle.velocity.x = -velCollisionMagnitude;
@@ -152,7 +155,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         }
         else if (forceCollision){
             
-            particle.forces.z = accCollisionMagnitude;
+            particle.forces.z = forceCollisionMagnitude;
         }
         else if (velCollision){
             particle.velocity.z = velCollisionMagnitude;
@@ -172,7 +175,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
             updateDeltaTime -= collisionTime;
         }
         else if (forceCollision){
-            particle.forces.z = -accCollisionMagnitude;
+            particle.forces.z = -forceCollisionMagnitude;
         }
         else if (velCollision){
             particle.velocity.z = -velCollisionMagnitude;
