@@ -86,10 +86,10 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
 //                otherParticle.forces -= (dot(otherParticle.forces,Ndiff) < 0) ? Ndiff*dot(otherParticle.forces,Ndiff) : 0;
                 particle.forces -= (dot(particle.forces,Ndiff) > 0) ? Ndiff*dot(particle.forces,Ndiff) : 0;
 //                otherParticle.forces += (dot(particle.forces,Ndiff) > 0) ? Ndiff*dot(particle.forces,Ndiff) : 0;
-                particle.velocity += -Ndiff*dot(particle.velocity,Ndiff) + (-Ndiff*dot(otherParticle.velocity, -Ndiff))*uniforms.particleBouncingCoefficient;
+                particle.velocity += (dot(particle.velocity, Ndiff) > 0 || dot(otherParticle.velocity, -Ndiff) > 0) ? -Ndiff*dot(particle.velocity,Ndiff) + (-Ndiff*dot(otherParticle.velocity, -Ndiff))*uniforms.particleBouncingCoefficient : 0;
 
                 float overlappingDist = abs((dist-2*uniforms.particleRadius));
-                particle.position += -Ndiff*overlappingDist;
+//                particle.position += -Ndiff*overlappingDist;
 //                particles[otherParticleID] = otherParticle;
 
                 
