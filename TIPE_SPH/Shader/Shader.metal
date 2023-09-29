@@ -184,28 +184,5 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     particle.velocity += particle.acceleration * uniforms.deltaTime;
     particle.position += positionShifter;
     particle.position += particle.velocity * uniforms.deltaTime;
-    
-    
-//    if(particle.position.y < uniforms.particleRadius && groundCollisions){
-//        particle.position.y = uniforms.particleRadius;
-//
-//    }
-//    if(particle.position.x < uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius && applyBorderCollision){
-//        particle.position.x = uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius;
-//
-//    }
-//    else if(particle.position.x > uniforms.containerPosition.x + uniforms.containerSize.x / 2 + uniforms.particleRadius && applyBorderCollision){
-//        particle.position.x = uniforms.containerPosition.x + uniforms.containerSize.x / 2 + uniforms.particleRadius;
-//
-//    }
-//    if(particle.position.z < uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius && applyBorderCollision){
-//        particle.position.z = uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius;
-//
-//    }
-//    else if(particle.position.z > uniforms.containerPosition.z + uniforms.containerSize.z / 2 + uniforms.particleRadius && applyBorderCollision){
-//        particle.position.z = uniforms.containerPosition.z + uniforms.containerSize.z / 2 + uniforms.particleRadius;
-//
-//    }
-    
     particles[id] = particle;
 }
