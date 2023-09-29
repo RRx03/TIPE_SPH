@@ -12,6 +12,8 @@ using namespace metal;
 #define forceCollisionMagnitude 9.81
 #define velCollisionMagnitude 0.1
 
+#define turbulenceMag 10
+
 
 
 
@@ -55,10 +57,12 @@ vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]],
 fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &params [[buffer(12)]])
 {
 
-#define minLighting 1.0
+#define minLighting 0.1
     float3 light = normalize(float3(0, -1, 1));
+    
     float iso = max(minLighting, dot(vertexIn.normal, -light));
     float3 color = float3(0.25, 0.87, 0.82);
+    color = float3(1);
     return float4(color * iso, 1);
 }
 
@@ -73,6 +77,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     float3 positionShifter = float3(0, 0, 0);
     float updateDeltaTime = uniforms.deltaTime;
     
+    float3 resPos = float3(0, 0, 0);
     
     
     for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
@@ -94,12 +99,13 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
                 
             }
             if(dist < uniforms.hConst){
-                particle.forces += -Ndiff*exp(-dist);
+                resPos += otherParticle.position;
             }
         }
     }
-    
-    
+    if(length(resPos) != 0){
+        particle.forces += -normalize(resPos)*exp(-length(resPos))*turbulenceMag;
+    }
     
     if (particle.position.y + particle.velocity.y * updateDeltaTime <= uniforms.particleRadius && groundCollisions)
     {
