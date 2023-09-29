@@ -78,7 +78,7 @@ class Renderer : NSObject {
         params.height = Float(Settings.height)
         var projectionMatrix: float4x4 {float4x4(projectionFov: Settings.fov, near: Settings.nearPlan, far: Settings.farPlan, aspect: Float(params.width)/Float(params.height))}
         uniforms.projectionMatrix = projectionMatrix
-        uniforms.viewMatrix = float4x4(rotationX: -Float.pi/10) * float4x4(translation: [0, 10, -20]).inverse //Camera Position
+        uniforms.viewMatrix = float4x4(rotationX: Settings.cameraAngle) * float4x4(translation: Settings.cameraPosition).inverse //Camera Position
         
         uniforms.gravity = Settings.gravity
         
