@@ -12,7 +12,6 @@ using namespace metal;
 #define forceCollisionMagnitude 9.81
 #define velCollisionMagnitude 0.1
 
-#define turbulenceMag 0.0001
 
 
 
