@@ -83,6 +83,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
             continue;
         }
 
+        
         Particle otherParticle = particles[otherParticleID];
         float3 diff = otherParticle.position - particle.position;
         float dist = length(diff);
