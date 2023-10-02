@@ -87,6 +87,8 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     
     float updateDeltaTime = uniforms.deltaTime;
     particle.velocity = particle.position - particle.oldPosition;
+    
+    bool haveCollisionned = false;
 
     if (particle.position.y + particle.velocity.y * updateDeltaTime <= uniforms.particleRadius && groundCollisions)
     {
@@ -96,6 +98,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         particle.velocity.y *= -1*uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
         updateDeltaTime -= collisionTime;
+        haveCollisionned = true;
     }
     if (particle.position.x + particle.velocity.x * updateDeltaTime <= uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius)
     {
@@ -105,6 +108,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         particle.velocity.x *= -1*uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
         updateDeltaTime -= collisionTime;
+        haveCollisionned = true;
         
     }
     else if (particle.position.x + particle.velocity.x * updateDeltaTime >= uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius)
@@ -115,6 +119,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         particle.velocity.x *= -1*uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
         updateDeltaTime -= collisionTime;
+        haveCollisionned = true;
         
     }
     if (particle.position.z + particle.velocity.z * updateDeltaTime <= uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius)
@@ -125,6 +130,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         particle.velocity.z *= -1*uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
         updateDeltaTime -= collisionTime;
+        haveCollisionned = true;
         
     }
     else if (particle.position.z + particle.velocity.z * updateDeltaTime >= uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius)
@@ -136,15 +142,13 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         particle.velocity.z *= -1*uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
         updateDeltaTime -= collisionTime;
+        haveCollisionned = true;
         
     }
     
     
-    
     particle.acceleration = particle.forces / uniforms.particleMass;
-    
     particle.oldPosition = particle.position;
     particle.position += particle.velocity + particle.acceleration * uniforms.deltaTime * uniforms.deltaTime;
-
     particles[id] = particle;
 }

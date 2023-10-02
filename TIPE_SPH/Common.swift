@@ -15,7 +15,7 @@ enum Settings{
     static var fov : Float = 70
     static var nearPlan : Float = 0.1
     static var farPlan : Float = 100
-    static var fixedDeltaTime : Float = 1/60
+    static var fixedDeltaTime : Float = 0
     static var gravity : Float = 9.81
     static var cameraPosition : SIMD3<Float> = [0, 10, -20]
     static var cameraAngle : Float = -Float.pi/10
@@ -31,7 +31,7 @@ enum ParticleSettings{
     static var meshPrecision : UInt32 = 10
     
     static var spawnJigger : Float = 0.1
-    static var gridPopulation : [Int] = [10, 80, 10]
+    static var gridPopulation : [Int] = [10, 40, 10]
     static var gridSize : [Float] = [10, 10, 10]
     static var gridPosition : [Float] = [0, 12, 0]
     static var particleCount : Int32 {return Int32(gridPopulation[0]*gridPopulation[1]*gridPopulation[2])}
