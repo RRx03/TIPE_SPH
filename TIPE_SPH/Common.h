@@ -10,7 +10,9 @@ typedef struct {
     matrix_float4x4 projectionMatrix;
     
     float deltaTime;
+    int subSteps;
     float gravity;
+
 
     simd_float3 containerSize;
     simd_float3 containerPosition;
