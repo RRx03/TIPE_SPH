@@ -63,7 +63,6 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
 
     particle.forces = float3(0, -uniforms.gravity * uniforms.particleMass, 0);
     
-    
     for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
         if(otherParticleID == id){
             continue;
@@ -95,8 +94,10 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         float collisionTime = (uniforms.particleRadius - particle.position.y) / particle.velocity.y;
         particle.position += (collisionTime)*particle.velocity;
         particle.oldPosition = particle.position;
-        particle.velocity.y *= -1*uniforms.particleBouncingCoefficient;
+        particle.velocity.y *= -1;
+        particle.velocity *= uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
+        particle.position.y += 0.001; //Protection for instabilities (unwanted leaps)
         updateDeltaTime -= collisionTime;
         haveCollisionned = true;
     }
@@ -105,7 +106,8 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         float collisionTime = (uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius - particle.position.x) / particle.velocity.x;
         particle.position += (collisionTime)*particle.velocity;
         particle.oldPosition = particle.position;
-        particle.velocity.x *= -1*uniforms.particleBouncingCoefficient;
+        particle.velocity.x *= -1;
+        particle.velocity *= uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
         updateDeltaTime -= collisionTime;
         haveCollisionned = true;
@@ -116,7 +118,8 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         float collisionTime = (uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius - particle.position.x) / particle.velocity.x;
         particle.position += (collisionTime)*particle.velocity;
         particle.oldPosition = particle.position;
-        particle.velocity.x *= -1*uniforms.particleBouncingCoefficient;
+        particle.velocity.x *= -1;
+        particle.velocity *= uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
         updateDeltaTime -= collisionTime;
         haveCollisionned = true;
@@ -127,7 +130,8 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         float collisionTime = (uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius - particle.position.z) / particle.velocity.z;
         particle.position += (collisionTime)*particle.velocity;
         particle.oldPosition = particle.position;
-        particle.velocity.z *= -1*uniforms.particleBouncingCoefficient;
+        particle.velocity.z *= -1;
+        particle.velocity *= uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
         updateDeltaTime -= collisionTime;
         haveCollisionned = true;
@@ -139,7 +143,8 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         float collisionTime = (uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius - particle.position.z) / particle.velocity.z;
         particle.position += (collisionTime)*particle.velocity;
         particle.oldPosition = particle.position;
-        particle.velocity.z *= -1*uniforms.particleBouncingCoefficient;
+        particle.velocity.z *= -1;
+        particle.velocity *= uniforms.particleBouncingCoefficient;
         particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
         updateDeltaTime -= collisionTime;
         haveCollisionned = true;
