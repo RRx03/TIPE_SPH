@@ -4,16 +4,7 @@
 using namespace metal;
 
 #define groundCollisions true
-#define continousBorderCollision false
-#define forceCollision false
-#define velCollision false
-#define classicCollision true
-
-
-#define forceCollisionMagnitude 9.81
-#define velCollisionMagnitude 0.1
-
-
+#define applyCollisions false
 
 
 struct VertexIn
@@ -85,51 +76,45 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         if(dist != 0){
             float3 Ndiff = normalize(diff);
             if(dist < uniforms.particleRadius*2){
-                particle.forces -= (dot(particle.forces,Ndiff) > 0) ? Ndiff*dot(particle.forces,Ndiff) : 0;
-                particle.forces += (dot(otherParticle.forces,Ndiff) < 0) ? Ndiff*dot(otherParticle.forces,Ndiff) : 0;
-                particle.velocity += (dot(particle.velocity, Ndiff) > 0 || dot(otherParticle.velocity, -Ndiff) > 0) ? -Ndiff*dot(particle.velocity,Ndiff) + (-Ndiff*dot(otherParticle.velocity, -Ndiff)) : 0;
-                particle.position += -Ndiff*(uniforms.particleRadius*2-dist);
+                particle.position += -Ndiff*(uniforms.particleRadius*2-dist)/2;
+                otherParticle.position += Ndiff*(uniforms.particleRadius*2-dist)/2;
+                particles[otherParticleID] = otherParticle;
             }
+            
         }
     }
     
+    
+    
+    
     if (particle.position.y <= uniforms.particleRadius && groundCollisions)
     {
-        particle.velocity.y *= -uniforms.particleBouncingCoefficient;
         particle.position.y = uniforms.particleRadius;
-        
     }
-    if (particle.position.x <= uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius)
+    if (particle.position.x <= uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius && applyCollisions)
     {
-        
-        particle.velocity.x *= -uniforms.particleBouncingCoefficient;
         particle.position.x = uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius;
     }
-    else if (particle.position.x >= uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius)
+    else if (particle.position.x >= uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius && applyCollisions)
     {
-        
-        particle.velocity.x *= -uniforms.particleBouncingCoefficient;
         particle.position.x = uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius;
-        
     }
-    if (particle.position.z <= uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius)
+    if (particle.position.z <= uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius && applyCollisions)
     {
-        
-        particle.velocity.z *= -uniforms.particleBouncingCoefficient;
         particle.position.z = uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius;
-        
     }
-    else if (particle.position.z >= uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius)
+    else if (particle.position.z >= uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius && applyCollisions)
     {
-        
-        particle.velocity.z *= -uniforms.particleBouncingCoefficient;
         particle.position.z = uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius;
-        
     }
+    
     
     
     particle.acceleration = particle.forces / uniforms.particleMass;
-    particle.velocity += particle.acceleration * uniforms.deltaTime;
-    particle.position += particle.velocity * uniforms.deltaTime;
+    
+    particle.velocity = particle.position - particle.oldPosition;
+    particle.oldPosition = particle.position;
+    particle.position += particle.velocity + particle.acceleration * uniforms.deltaTime * uniforms.deltaTime;
+
     particles[id] = particle;
 }

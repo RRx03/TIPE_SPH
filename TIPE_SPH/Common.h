@@ -43,6 +43,7 @@ typedef struct {
 typedef struct {
     
     simd_float3 position;
+    simd_float3 oldPosition;
     simd_float3 velocity;
     simd_float3 acceleration;
     simd_float3 forces;
