@@ -1,4 +1,5 @@
 #include <metal_stdlib>
+
 #include "../Common.h"
 using namespace metal;
 
@@ -11,7 +12,6 @@ using namespace metal;
 
 #define forceCollisionMagnitude 9.81
 #define velCollisionMagnitude 0.1
-
 
 
 
@@ -73,11 +73,6 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     particle.forces = float3(0, -uniforms.gravity * uniforms.particleMass, 0);
     
     
-    float3 positionShifter = float3(0, 0, 0);
-    float updateDeltaTime = uniforms.deltaTime;
-    
-    
-    
     for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
         if(otherParticleID == id){
             continue;
@@ -98,110 +93,43 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         }
     }
     
-    if (particle.position.y + particle.velocity.y * updateDeltaTime <= uniforms.particleRadius && groundCollisions)
+    if (particle.position.y <= uniforms.particleRadius && groundCollisions)
     {
-        if(continousBorderCollision){
-            float collisionTime = (uniforms.particleRadius - particle.position.y) / particle.velocity.y;
-            particle.position += (collisionTime)*particle.velocity;
-            particle.velocity.y *= -uniforms.particleBouncingCoefficient;
-            particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
-            positionShifter -= (updateDeltaTime)*particle.velocity;
-            updateDeltaTime -= collisionTime;
-        }
-        else if (classicCollision){
-            particle.velocity.y *= -uniforms.particleBouncingCoefficient;
-            particle.position.y = uniforms.particleRadius;
-        }
+        particle.velocity.y *= -uniforms.particleBouncingCoefficient;
+        particle.position.y = uniforms.particleRadius;
+        
     }
-    if (particle.position.x + particle.velocity.x * updateDeltaTime <= uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius)
+    if (particle.position.x <= uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius)
     {
-        if(continousBorderCollision){
-            float collisionTime = (uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius - particle.position.x) / particle.velocity.x;
-            particle.position += (collisionTime)*particle.velocity;
-            particle.velocity.x *= -uniforms.particleBouncingCoefficient;
-            particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
-            positionShifter -= (updateDeltaTime)*particle.velocity;
-            updateDeltaTime -= collisionTime;
-        }
-        else if (forceCollision){
-            particle.forces.x = forceCollisionMagnitude;
-        }
-        else if (velCollision){
-            particle.velocity.x = velCollisionMagnitude;
-        }
-        else if (classicCollision){
-            particle.velocity.x *= -uniforms.particleBouncingCoefficient;
-            particle.position.x = uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius;
-        }
+        
+        particle.velocity.x *= -uniforms.particleBouncingCoefficient;
+        particle.position.x = uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius;
     }
-    else if (particle.position.x + particle.velocity.x * updateDeltaTime >= uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius)
+    else if (particle.position.x >= uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius)
     {
-        if(continousBorderCollision){
-            float collisionTime = (uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius - particle.position.x) / particle.velocity.x;
-            particle.position += (collisionTime)*particle.velocity;
-            particle.velocity.x *= -uniforms.particleBouncingCoefficient;
-            particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
-            positionShifter -= (updateDeltaTime)*particle.velocity;
-            updateDeltaTime -= collisionTime;
-        }
-        else if (forceCollision){
-            particle.forces.x = -forceCollisionMagnitude;
-        }
-        else if (velCollision){
-            particle.velocity.x = -velCollisionMagnitude;
-        }
-        else if (classicCollision){
-            particle.velocity.x *= -uniforms.particleBouncingCoefficient;
-            particle.position.x = uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius;
-        }
+        
+        particle.velocity.x *= -uniforms.particleBouncingCoefficient;
+        particle.position.x = uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius;
+        
     }
-    if (particle.position.z + particle.velocity.z * updateDeltaTime <= uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius)
+    if (particle.position.z <= uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius)
     {
-        if(continousBorderCollision){
-            float collisionTime = (uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius - particle.position.z) / particle.velocity.z;
-            particle.position += (collisionTime)*particle.velocity;
-            particle.velocity.z *= -uniforms.particleBouncingCoefficient;
-            particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
-            positionShifter -= (updateDeltaTime)*particle.velocity;
-            updateDeltaTime -= collisionTime;
-        }
-        else if (forceCollision){
-            
-            particle.forces.z = forceCollisionMagnitude;
-        }
-        else if (velCollision){
-            particle.velocity.z = velCollisionMagnitude;
-        }
-        else if (classicCollision){
-            particle.velocity.z *= -uniforms.particleBouncingCoefficient;
-            particle.position.z = uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius;
-        }
+        
+        particle.velocity.z *= -uniforms.particleBouncingCoefficient;
+        particle.position.z = uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius;
+        
     }
-    else if (particle.position.z + particle.velocity.z * updateDeltaTime >= uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius)
+    else if (particle.position.z >= uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius)
     {
-        if(continousBorderCollision){
-            
-            float collisionTime = (uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius - particle.position.z) / particle.velocity.z;
-            particle.position += (collisionTime)*particle.velocity;
-            particle.velocity.z *= -uniforms.particleBouncingCoefficient;
-            particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
-            positionShifter -= (updateDeltaTime)*particle.velocity;
-            updateDeltaTime -= collisionTime;
-        }
-        else if (forceCollision){
-            particle.forces.z = -forceCollisionMagnitude;
-        }
-        else if (velCollision){
-            particle.velocity.z = -velCollisionMagnitude;
-        }
-        else if (classicCollision){
-            particle.velocity.z *= -uniforms.particleBouncingCoefficient;
-            particle.position.z = uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius;
-        }
+        
+        particle.velocity.z *= -uniforms.particleBouncingCoefficient;
+        particle.position.z = uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius;
+        
     }
+    
+    
     particle.acceleration = particle.forces / uniforms.particleMass;
     particle.velocity += particle.acceleration * uniforms.deltaTime;
-    particle.position += positionShifter;
     particle.position += particle.velocity * uniforms.deltaTime;
     particles[id] = particle;
 }
