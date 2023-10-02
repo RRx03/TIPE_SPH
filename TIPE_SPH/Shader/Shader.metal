@@ -85,34 +85,64 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     }
     
     
-    
-    
-    if (particle.position.y <= uniforms.particleRadius && groundCollisions)
+    float updateDeltaTime = uniforms.deltaTime;
+    particle.velocity = particle.position - particle.oldPosition;
+
+    if (particle.position.y + particle.velocity.y * updateDeltaTime <= uniforms.particleRadius && groundCollisions)
     {
-        particle.position.y = uniforms.particleRadius;
+        float collisionTime = (uniforms.particleRadius - particle.position.y) / particle.velocity.y;
+        particle.position += (collisionTime)*particle.velocity;
+        particle.oldPosition = particle.position;
+        particle.velocity.y *= -1*uniforms.particleBouncingCoefficient;
+        particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
+        updateDeltaTime -= collisionTime;
     }
-    if (particle.position.x <= uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius && applyCollisions)
+    if (particle.position.x + particle.velocity.x * updateDeltaTime <= uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius)
     {
-        particle.position.x = uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius;
+        float collisionTime = (uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius - particle.position.x) / particle.velocity.x;
+        particle.position += (collisionTime)*particle.velocity;
+        particle.oldPosition = particle.position;
+        particle.velocity.x *= -1*uniforms.particleBouncingCoefficient;
+        particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
+        updateDeltaTime -= collisionTime;
+        
     }
-    else if (particle.position.x >= uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius && applyCollisions)
+    else if (particle.position.x + particle.velocity.x * updateDeltaTime >= uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius)
     {
-        particle.position.x = uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius;
+        float collisionTime = (uniforms.containerPosition.x + uniforms.containerSize.x / 2 - uniforms.particleRadius - particle.position.x) / particle.velocity.x;
+        particle.position += (collisionTime)*particle.velocity;
+        particle.oldPosition = particle.position;
+        particle.velocity.x *= -1*uniforms.particleBouncingCoefficient;
+        particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
+        updateDeltaTime -= collisionTime;
+        
     }
-    if (particle.position.z <= uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius && applyCollisions)
+    if (particle.position.z + particle.velocity.z * updateDeltaTime <= uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius)
     {
-        particle.position.z = uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius;
+        float collisionTime = (uniforms.containerPosition.z - uniforms.containerSize.z / 2 + uniforms.particleRadius - particle.position.z) / particle.velocity.z;
+        particle.position += (collisionTime)*particle.velocity;
+        particle.oldPosition = particle.position;
+        particle.velocity.z *= -1*uniforms.particleBouncingCoefficient;
+        particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
+        updateDeltaTime -= collisionTime;
+        
     }
-    else if (particle.position.z >= uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius && applyCollisions)
+    else if (particle.position.z + particle.velocity.z * updateDeltaTime >= uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius)
     {
-        particle.position.z = uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius;
+        
+        float collisionTime = (uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius - particle.position.z) / particle.velocity.z;
+        particle.position += (collisionTime)*particle.velocity;
+        particle.oldPosition = particle.position;
+        particle.velocity.z *= -1*uniforms.particleBouncingCoefficient;
+        particle.position += (updateDeltaTime - collisionTime) * particle.velocity;
+        updateDeltaTime -= collisionTime;
+        
     }
     
     
     
     particle.acceleration = particle.forces / uniforms.particleMass;
     
-    particle.velocity = particle.position - particle.oldPosition;
     particle.oldPosition = particle.position;
     particle.position += particle.velocity + particle.acceleration * uniforms.deltaTime * uniforms.deltaTime;
 
