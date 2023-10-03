@@ -19,7 +19,7 @@ enum Settings{
     static var gravity : Float = 9.81
     static var cameraPosition : SIMD3<Float> = [0, 10, -20]
     static var cameraAngle : Float = -Float.pi/10
-    static var subSteps : Int32 = 8
+    static var subSteps : Int32 = 5
 
 
 
@@ -44,7 +44,7 @@ enum ParticleSettings{
     static var mass : Float = 1
     static var gazConstant : Float = 1
     static var restDensity : Float = 1
-    static var bouncingCoefficient : Float = 0.9
+    static var bouncingCoefficient : Float = 1
     static var groundFrictionCoefficient : Float = 100
 }
 
