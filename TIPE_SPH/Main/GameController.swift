@@ -36,14 +36,16 @@ class GameController : NSObject {
         let gridConstantY = (ParticleSettings.gridSize[1])/Float(ParticleSettings.gridPopulation[1])
         let gridConstantZ = (ParticleSettings.gridSize[2])/Float(ParticleSettings.gridPopulation[2])
 
+        
+        
         for y in 0..<ParticleSettings.gridPopulation[1] {
             for x in 0..<ParticleSettings.gridPopulation[0] {
                 for z in 0..<ParticleSettings.gridPopulation[2] {
-                    particles.append(Particle(position: [
+                    let pos : SIMD3<Float> = SIMD3<Float>(
                         Float(x)*gridConstantX+ParticleSettings.gridPosition[0]-ParticleSettings.gridSize[0]/2+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
                         Float(y)*gridConstantY+ParticleSettings.gridPosition[1]-ParticleSettings.gridSize[1]/2+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
-                        Float(z)*gridConstantZ+ParticleSettings.gridPosition[2]-ParticleSettings.gridSize[2]/2+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger)
-                    ], velocity: [0, 0, 0], acceleration: [0, 0, 0], forces: [0, 0, 0], pressure: 0, density: 1, viscosity: 0))
+                        Float(z)*gridConstantZ+ParticleSettings.gridPosition[2]-ParticleSettings.gridSize[2]/2+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger))
+                    particles.append(Particle(position: pos, oldPosition : pos,  velocity: [0, 0, 0], acceleration: [0, 0, 0], forces: [0, 0, 0], pressure: 0, density: 1, viscosity: 0))
                 }
             }
         }
