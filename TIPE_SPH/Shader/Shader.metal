@@ -90,10 +90,13 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         
         
         
+        
         particle.velocity = particle.position - particle.oldPosition;
         particle.acceleration = particle.forces / uniforms.particleMass;
         particle.oldPosition = particle.position;
         particle.position += particle.velocity + particle.acceleration * updateDeltaTime * updateDeltaTime;
+        
+        
         
         //ajouter continuous collisions there
         if(particle.position.y <= uniforms.particleRadius){

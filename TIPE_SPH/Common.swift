@@ -19,7 +19,7 @@ enum Settings{
     static var gravity : Float = 9.81
     static var cameraPosition : SIMD3<Float> = [0, 10, -20]
     static var cameraAngle : Float = -Float.pi/10
-    static var subSteps : Int32 = 5
+    static var subSteps : Int32 = 3
 
 
 
@@ -34,8 +34,8 @@ enum ParticleSettings{
     
     static var spawnJigger : Float = 0.1
     static var gridPopulation : [Int] = [10, 80, 10]
-    static var gridSize : [Float] = [10, 10, 10]
-    static var gridPosition : [Float] = [0, 6, 0]
+    static var gridSize : [Float] = [10, 6, 10]
+    static var gridPosition : [Float] = [0, 4, 0]
     static var particleCount : Int32 {return Int32(gridPopulation[0]*gridPopulation[1]*gridPopulation[2])}
     
     static var containerSize : [Float] = [10, 100, 10]
