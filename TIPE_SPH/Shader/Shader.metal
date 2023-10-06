@@ -25,9 +25,14 @@ float Weight(float q, float hConst3)
 //    return 315 * pow((hConst2 - pow(dist, 2)), 3) / (64 * M_PI_F * hConst9);
     
     float alpha = 1/(4*M_PI_F*hConst3);
-    if (q ){
-    
+    if (q >= 0 && q < 1){
+        return alpha*(pow((2-q), 3)-4*pow((1-q), 3));
     }
+    else if (q >= 1 && q < 2){
+        return alpha*(pow(2-q, 3));
+        
+    }
+        return 0;
 
 }
 
