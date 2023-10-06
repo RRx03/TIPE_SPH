@@ -26,10 +26,9 @@ typedef struct {
     float particleVolume;
     float particleRadius;
     float hConst;
-    float hConst2;
+    float hConst3;
     float hConst9;
-    float airFrictionCoefficient;
-    float groundFrictionCoefficient;
+    float globalFriction;
 
 } Uniforms;
 
@@ -49,6 +48,7 @@ typedef struct {
     simd_float3 velocity;
     simd_float3 acceleration;
     simd_float3 forces;
+    float rho;
     float pressure;
     float density;
     float viscosity;
