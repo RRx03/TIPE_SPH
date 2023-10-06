@@ -21,9 +21,7 @@ struct VertexOut
 
 float Weight(float q, float hConst3)
 {
-
 //    return 315 * pow((hConst2 - pow(dist, 2)), 3) / (64 * M_PI_F * hConst9);
-    
     float alpha = 1/(4*M_PI_F*hConst3);
     if (q >= 0 && q < 1){
         return alpha*(pow((2-q), 3)-4*pow((1-q), 3));
@@ -34,6 +32,11 @@ float Weight(float q, float hConst3)
     }
         return 0;
 
+}
+
+float Weight2(float x, float hConst)
+{
+    return (2/(3*hConst))*exp(-(x*x)/(2*pow(0.59*hConst, 2)));
 }
 
 matrix_float4x4 translationMatrix(float3 translation)
@@ -100,6 +103,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
             particle.rho += uniforms.particleMass*Weight(dist/uniforms.hConst, uniforms.hConst3);
         }
     }
+    
     
     
     

@@ -81,9 +81,6 @@ class Renderer : NSObject {
         uniforms.viewMatrix = float4x4(rotationX: Settings.cameraAngle) * float4x4(translation: Settings.cameraPosition).inverse //Camera Position
         
         uniforms.gravity = Settings.gravity
-        uniforms.subSteps = Settings.subSteps
-
-
 
         uniforms.particleMass = ParticleSettings.mass;
         uniforms.particleBouncingCoefficient = ParticleSettings.bouncingCoefficient;

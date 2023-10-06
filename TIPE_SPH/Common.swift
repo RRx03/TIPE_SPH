@@ -46,5 +46,8 @@ enum ParticleSettings{
     static var restDensity : Float = 1
     static var bouncingCoefficient : Float = 1
     static var groundFrictionCoefficient : Float = 100
+    
+    static var gridding : [Float] = [10, 10, 10]
+
 }
 
