@@ -52,6 +52,7 @@ typedef struct {
     simd_float3 velocity;
     simd_float3 acceleration;
     simd_float3 forces;
+    simd_float3 color;
     float rho;
     float pressure;
     float density;
