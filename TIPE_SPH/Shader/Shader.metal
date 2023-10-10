@@ -4,7 +4,6 @@
 using namespace metal;
 
 #define groundCollisions true
-#define applyCollisions false
 
 
 struct VertexIn
@@ -16,6 +15,7 @@ struct VertexIn
 struct VertexOut
 {
     float4 position [[position]];
+    float3 velocity;
     float3 normal;
 };
 
@@ -54,6 +54,7 @@ vertex VertexOut Vertex(const VertexIn vertexIn [[stage_in]],
     Particle particle = particles[instanceid];
     out.position = uniforms.projectionMatrix * uniforms.viewMatrix * translationMatrix(particle.position) * vertexIn.position;
     out.normal = vertexIn.normal;
+    out.velocity = particle.velocity;
 
     return out;
 }
@@ -62,16 +63,64 @@ fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &param
 {
 
 #define minLighting 0.1
+#define offset 1
+#define radius 1
+#define mag 10
+
+
+
+    
+    float velScale = length(vertexIn.velocity)*mag;
+    float r = (M_PI_F/2+atan(velScale-offset-radius))*2/M_PI_F;
+    float g = max(0.0, 1-pow(velScale-offset, 2));
+    float b = (M_PI_F/2-atan(velScale-offset+radius))*2/M_PI_F;
+    
+    
+    
+
+    
     
     float3 light = normalize(float3(0, -1, 1));
     float iso = max(minLighting, dot(vertexIn.normal, -light));
-    float3 color = float3(0.25, 0.87, 0.82);
-    color = float3(1);
+    float3 color;
+    color = float3(r, g, b);
     return float4(color * iso, 1);
 }
 
 
-kernel void updateParticles(device Particle *particles [[buffer(1)]], constant Uniforms &uniforms [[buffer(11)]], uint id [[thread_position_in_grid]])
+int3 coordsFromId (int ID, int3 cellStruct){
+    int z = int(ID/(cellStruct.x*cellStruct.y));
+    int y = int((ID-z)/(cellStruct.x));
+    int x = int((ID-z-y));
+    return int3(0, ID/10, 0);
+    return int3(x, y, z);
+
+    
+}
+kernel void CellUpdate (device Particle *particles [[buffer(1)]],
+                        device int *lookupTable [[buffer(2)]],
+                        device int *indices [[buffer(3)]],
+                        device int *startIndices [[buffer(4)]],
+                        constant Uniforms &uniforms [[buffer(11)]],
+                        uint id [[thread_position_in_grid]])
+{
+    Particle particle = particles[id];
+    int3 cellCoords = int3(particle.position/float3(uniforms.cellStruct));
+    int cellID = cellCoords.x + uniforms.cellStruct.x*cellCoords.y + uniforms.cellStruct.x+uniforms.cellStruct.y*cellCoords.z;
+    indices[id] = id;
+    lookupTable[id] = cellID;
+    
+    
+    
+}
+
+
+kernel void updateParticles(device Particle *particles [[buffer(1)]],
+                            device int *lookupTable [[buffer(2)]],
+                            device int *indices [[buffer(3)]],
+                            device int *startIndices [[buffer(4)]],
+                            constant Uniforms &uniforms [[buffer(11)]],
+                            uint id [[thread_position_in_grid]])
 {
     
     
@@ -114,7 +163,7 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
     particle.position += (particle.velocity)*uniforms.globalFriction + particle.acceleration * updateDeltaTime * updateDeltaTime;
     
     
-    if(particle.position.y <= uniforms.particleRadius){
+    if(particle.position.y <= uniforms.particleRadius && groundCollisions){
         particle.position.y = uniforms.particleRadius;
     }
     if(particle.position.x < uniforms.containerPosition.x - uniforms.containerSize.x / 2 + uniforms.particleRadius){
@@ -133,6 +182,17 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]], constant U
         particle.position.z = uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius;
         
     }
+    if(particle.position.y < uniforms.containerPosition.y - uniforms.containerSize.y / 2 + uniforms.particleRadius){
+        particle.position.y = uniforms.containerPosition.y - uniforms.containerSize.y / 2 + uniforms.particleRadius;
+        
+    }
+    else if(particle.position.y > uniforms.containerPosition.y + uniforms.containerSize.y / 2 - uniforms.particleRadius){
+        particle.position.y = uniforms.containerPosition.y + uniforms.containerSize.y / 2 - uniforms.particleRadius;
+        
+    }
+    particle.velocity = particle.position - particle.oldPosition;
+    
+//    particle.position = float3(coordsFromId(lookupTable[id], uniforms.cellStruct));
     particles[id] = particle;
 }
 

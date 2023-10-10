@@ -16,8 +16,12 @@ typedef struct {
 
     simd_float3 containerSize;
     simd_float3 containerPosition;
+    simd_int3 cellStruct;
+
     
     int particleCount;
+    int containerCount;
+
     float particleMass;
     float particleBouncingCoefficient;
     float particleViscosity;

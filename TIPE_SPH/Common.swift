@@ -27,7 +27,7 @@ enum Settings{
 
 enum ParticleSettings{
 
-    static var h : Float = 10
+    static var h : Float = 1
     static var radius : Float = 0.1
     static var Volume : Float = 1
     static var meshPrecision : UInt32 = 10
@@ -38,8 +38,11 @@ enum ParticleSettings{
     static var gridPosition : [Float] = [0.5, 4, 0]
     static var particleCount : Int32 {return Int32(gridPopulation[0]*gridPopulation[1]*gridPopulation[2])}
     
-    static var containerSize : [Float] = [10, 20, 10]
-    static var containerPosition : [Float] = [0, 10, 0]
+    static var cellStruct : [Int32] = [10, 100, 10]
+    static var containerSize : [Float] {return [Float(cellStruct[0])*h, Float(cellStruct[1])*h, Float(cellStruct[2])*h]}
+    static var containerPosition : [Float] = [0, 5, 0]
+    static var containerCount : Int32 {return Int32(containerSize[0]*containerSize[1]*containerSize[2])}
+
     
     static var mass : Float = 1
     static var gazConstant : Float = 1

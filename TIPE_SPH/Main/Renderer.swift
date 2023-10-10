@@ -10,6 +10,7 @@ class Renderer : NSObject {
     
     var renderPipelineState : MTLRenderPipelineState!
     var computePipelineState : MTLComputePipelineState!
+    var cellPipelineState : MTLComputePipelineState!
 
     let depthStencilState: MTLDepthStencilState?
 
@@ -19,7 +20,18 @@ class Renderer : NSObject {
     
     var mesh : MTKMesh
     
-   
+    
+    
+    var lookupTable : [Int32] = [Int32](repeating: 0, count: Int(ParticleSettings.particleCount))
+    var indices : [Int32] = [Int32](repeating: 0, count: Int(ParticleSettings.particleCount))
+    var startIndices : [Int32] = [Int32](repeating: 0, count: Int(ParticleSettings.containerCount))
+
+    
+    var lookupTableBuffer : MTLBuffer!
+    var indicesBuffer : MTLBuffer!
+    var startIndicesBuffer : MTLBuffer!
+
+
     
     init(metalView : MTKView){
         //MARK: - Basic Definitions
@@ -47,6 +59,10 @@ class Renderer : NSObject {
         }
         mesh = mtkMesh
         
+        lookupTableBuffer = Renderer.device.makeBuffer(bytes: &lookupTable, length: MemoryLayout<Int32>.stride * Int(ParticleSettings.particleCount))
+        indicesBuffer = Renderer.device.makeBuffer(bytes: &indices, length: MemoryLayout<Int32>.stride * Int(ParticleSettings.particleCount))
+        startIndicesBuffer = Renderer.device.makeBuffer(bytes: &startIndices, length: MemoryLayout<Int32>.stride * Int(ParticleSettings.containerCount))
+        
         super.init()
         
         
@@ -56,6 +72,8 @@ class Renderer : NSObject {
         let vertex = library?.makeFunction(name: "Vertex")
         let fragment = library?.makeFunction(name: "Fragment")
         let kernel = library?.makeFunction(name: "updateParticles")
+        let cell = library?.makeFunction(name: "CellUpdate")
+
         let renderPipelineStateDescriptor = MTLRenderPipelineDescriptor()
         renderPipelineStateDescriptor.vertexFunction = vertex
         renderPipelineStateDescriptor.fragmentFunction = fragment
@@ -67,6 +85,8 @@ class Renderer : NSObject {
         do {
             renderPipelineState = try Renderer.device.makeRenderPipelineState(descriptor: renderPipelineStateDescriptor)
             computePipelineState = try Renderer.device.makeComputePipelineState(function: kernel!)
+            cellPipelineState = try Renderer.device.makeComputePipelineState(function: cell!)
+
         }catch{
             fatalError("Fail")
         }
@@ -87,6 +107,9 @@ class Renderer : NSObject {
         uniforms.containerSize = simd_float3(ParticleSettings.containerSize)
         uniforms.containerPosition = simd_float3(ParticleSettings.containerPosition)
         uniforms.particleCount = ParticleSettings.particleCount
+        uniforms.containerCount = ParticleSettings.containerCount;
+        uniforms.cellStruct = simd_int3(ParticleSettings.cellStruct);
+
         
         uniforms.particleVolume = ParticleSettings.Volume
         uniforms.particleRestDensity = ParticleSettings.restDensity
@@ -114,20 +137,35 @@ class Renderer : NSObject {
         guard let renderPass = view.currentRenderPassDescriptor else {return}
         guard let renderEncoder = commandRenderBuffer.makeRenderCommandEncoder(descriptor:renderPass) else {return}
         guard let commandComputeBuffer = Renderer.commandQueue.makeCommandBuffer() else {return}
-        guard let computeEncoder: MTLComputeCommandEncoder = commandComputeBuffer.makeComputeCommandEncoder() else {return}
+        guard let computeEncoder: MTLComputeCommandEncoder = commandComputeBuffer.makeComputeCommandEncoder(dispatchType: MTLDispatchType.serial) else {return}
+
 
         uniforms.deltaTime = deltaTime
         
-        //MARK: - Computing
-
-        computeEncoder.setComputePipelineState(computePipelineState)
+        //MARK: - Cell
         
+        computeEncoder.setComputePipelineState(cellPipelineState)
+
         let w: Int = computePipelineState.threadExecutionWidth
         let threadsPerGrid = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
         let threadsPerThreadgroup = MTLSize(width: w, height: 1, depth: 1)
         
         computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
         computeEncoder.setBuffer(GameController.particleBuffer, offset: 0, index: 1)
+        computeEncoder.setBuffer(lookupTableBuffer, offset: 0, index: 2)
+        computeEncoder.setBuffer(indicesBuffer, offset: 0, index: 3)
+        computeEncoder.setBuffer(startIndicesBuffer, offset: 0, index: 4)
+        computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+        
+        //MARK: - Computing
+        
+        computeEncoder.setComputePipelineState(computePipelineState)
+
+        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
+        computeEncoder.setBuffer(GameController.particleBuffer, offset: 0, index: 1)
+        computeEncoder.setBuffer(lookupTableBuffer, offset: 0, index: 2)
+        computeEncoder.setBuffer(indicesBuffer, offset: 0, index: 3)
+        computeEncoder.setBuffer(startIndicesBuffer, offset: 0, index: 4)
         computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
         
         computeEncoder.endEncoding()

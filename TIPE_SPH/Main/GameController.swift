@@ -4,6 +4,9 @@ class GameController : NSObject {
     //test
     var renderer : Renderer
     
+   
+
+    
     var particles : [Particle] = []
     static var particleBuffer : MTLBuffer!
     
