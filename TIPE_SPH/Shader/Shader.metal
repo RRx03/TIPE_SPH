@@ -182,17 +182,16 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]],
         particle.position.z = uniforms.containerPosition.z + uniforms.containerSize.z / 2 - uniforms.particleRadius;
         
     }
-    if(particle.position.y < uniforms.containerPosition.y - uniforms.containerSize.y / 2 + uniforms.particleRadius){
-        particle.position.y = uniforms.containerPosition.y - uniforms.containerSize.y / 2 + uniforms.particleRadius;
-        
-    }
-    else if(particle.position.y > uniforms.containerPosition.y + uniforms.containerSize.y / 2 - uniforms.particleRadius){
-        particle.position.y = uniforms.containerPosition.y + uniforms.containerSize.y / 2 - uniforms.particleRadius;
-        
-    }
+    //makes the particules curl.. WTF
+//    if(particle.position.y < uniforms.containerPosition.y - uniforms.containerSize.y / 2 + uniforms.particleRadius){
+//        particle.position.y = uniforms.containerPosition.y - uniforms.containerSize.y / 2 + uniforms.particleRadius;
+//
+//    }
+//    else if(particle.position.y > uniforms.containerPosition.y + uniforms.containerSize.y / 2 - uniforms.particleRadius){
+//        particle.position.y = uniforms.containerPosition.y + uniforms.containerSize.y / 2 - uniforms.particleRadius;
+//
+//    }
     particle.velocity = particle.position - particle.oldPosition;
-    
-//    particle.position = float3(coordsFromId(lookupTable[id], uniforms.cellStruct));
     particles[id] = particle;
 }
 
