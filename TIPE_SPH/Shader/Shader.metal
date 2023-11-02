@@ -56,12 +56,12 @@ constant const int3 NeighB[27] = {
 
 uint hashkey(int3 coords, uint total){
     
-    int temp1 = (coords.x+37217)*(coords.y+96797)*(coords.z+191)% total;
-    return uint(37217*temp1+96797*temp1*temp1+191*temp1) % total;
+    int temp1 = (coords.x*92837111)^(coords.y*689287499)^(coords.z*283923481);
+    return uint(abs(temp1) % total);
 
 }
-int3 CellCoords (float3 pos, float hConst){
-    return int3(pos/(hConst*2));
+int3 CellCoords (float3 pos, float gridSize){
+    return int3(pos/(gridSize*2));
 
 }
 
@@ -160,15 +160,15 @@ kernel void StartIndices (device Combo *combo [[buffer(2)]],
                         constant Uniforms &uniforms [[buffer(11)]],
                         uint id [[thread_position_in_grid]])
 {
-    for (int i = 0; i < uniforms.particleCount; i++){
-        if (combo[i].hashKey == id){
-            startIndices[id] = i;
-            return;
-        }
-        
+    if(id == 0){
+        startIndices[combo[id].hashKey] = id;
     }
-    startIndices[id] = uniforms.particleCount;
-    
+    if(combo[id].hashKey != combo[id-1].hashKey){
+        startIndices[combo[id].hashKey] = id;
+    }
+    else {
+        return;
+    }
 }
 
 
@@ -188,65 +188,65 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]],
     particle.forces = float3(0, -uniforms.gravity * uniforms.particleMass, 0);
     float updateDeltaTime = uniforms.deltaTime;
     
-    
-    uint NeighBCells[27]; //Stores HashKeys
-    
-    for (int i = 0; i < 27; i++){
-        int3 NeighBCellCoords = cellCoords + NeighB[i];
-        NeighBCells[i] = hashkey(NeighBCellCoords, uniforms.particleCount);
-        int index = startIndices[NeighBCells[i]];
-        if (index < uniforms.particleCount){
-            
-        
-        
-        while (combo[index].hashKey == NeighBCells[i]){
-            if (combo[index].ID != id){
-                Particle otherParticle = particles[combo[index].ID];
-                float3 diff = otherParticle.position - particle.position; //Continous collisions (text for position + Vel (= Verlet vel) etc etc ad test for distance ...)
-                float dist = length(diff);
-                if(dist != 0){
-                    float3 Ndiff = normalize(diff);
-                    if(dist < uniforms.particleRadius*2){
-                        particle.position += -Ndiff*(uniforms.particleRadius*2-dist)/2; //this would allow bouncing coefficient to get introduced
-                        otherParticle.position += Ndiff*(uniforms.particleRadius*2-dist)/2;
-                        particles[combo[index].ID] = otherParticle;
-                    }
-                }
-                if(dist < uniforms.hConst){
-                    particle.rho += uniforms.particleMass*Weight(dist/uniforms.hConst, uniforms.hConst3);
-                }
-            }
-            
-            
-            index++;
-        }
-    }
-        
-        
-    }
-    
-
-    
-
-//    for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
-//        if(otherParticleID == id){
-//            continue;
-//        }
-//        Particle otherParticle = particles[otherParticleID];
-//        float3 diff = otherParticle.position - particle.position; //Continous collisions (text for position + Vel (= Verlet vel) etc etc ad test for distance ...)
-//        float dist = length(diff);
-//        if(dist != 0){
-//            float3 Ndiff = normalize(diff);
-//            if(dist < uniforms.particleRadius*2){
-//                particle.position += -Ndiff*(uniforms.particleRadius*2-dist)/2; //this would allow bouncing coefficient to get introduced
-//                otherParticle.position += Ndiff*(uniforms.particleRadius*2-dist)/2;
-//                particles[otherParticleID] = otherParticle;
+//    
+//    uint NeighBCells[27]; //Stores HashKeys
+//    
+//    for (int i = 0; i < 27; i++){
+//        int3 NeighBCellCoords = cellCoords + NeighB[i];
+//        NeighBCells[i] = hashkey(NeighBCellCoords, uniforms.particleCount);
+//        int index = startIndices[NeighBCells[i]];
+//        if (index < uniforms.particleCount){
+//            
+//        
+//        
+//        while (combo[index].hashKey == NeighBCells[i]){
+//            if (combo[index].ID != id){
+//                Particle otherParticle = particles[combo[index].ID];
+//                float3 diff = otherParticle.position - particle.position; //Continous collisions (text for position + Vel (= Verlet vel) etc etc ad test for distance ...)
+//                float dist = length(diff);
+//                if(dist != 0){
+//                    float3 Ndiff = normalize(diff);
+//                    if(dist < uniforms.particleRadius*2){
+//                        particle.position += -Ndiff*(uniforms.particleRadius*2-dist)/2; //this would allow bouncing coefficient to get introduced
+//                        otherParticle.position += Ndiff*(uniforms.particleRadius*2-dist)/2;
+//                        particles[combo[index].ID] = otherParticle;
+//                    }
+//                }
+//                if(dist < uniforms.hConst){
+//                    particle.rho += uniforms.particleMass*Weight(dist/uniforms.hConst, uniforms.hConst3);
+//                }
 //            }
-//        }
-//        if(dist < uniforms.hConst){
-//            particle.rho += uniforms.particleMass*Weight(dist/uniforms.hConst, uniforms.hConst3);
+//            
+//            
+//            index++;
 //        }
 //    }
+//        
+//        
+//    }
+    
+
+    
+
+    for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
+        if(otherParticleID == id){
+            continue;
+        }
+        Particle otherParticle = particles[otherParticleID];
+        float3 diff = otherParticle.position - particle.position; //Continous collisions (text for position + Vel (= Verlet vel) etc etc ad test for distance ...)
+        float dist = length(diff);
+        if(dist != 0){
+            float3 Ndiff = normalize(diff);
+            if(dist < uniforms.particleRadius*2){
+                particle.position += -Ndiff*(uniforms.particleRadius*2-dist)/2; //this would allow bouncing coefficient to get introduced
+                otherParticle.position += Ndiff*(uniforms.particleRadius*2-dist)/2;
+                particles[otherParticleID] = otherParticle;
+            }
+        }
+        if(dist < uniforms.hConst){
+            particle.rho += uniforms.particleMass*Weight(dist/uniforms.hConst, uniforms.hConst3);
+        }
+    }
     
     particle.velocity = particle.position - particle.oldPosition;
     particle.acceleration = particle.forces / uniforms.particleMass;

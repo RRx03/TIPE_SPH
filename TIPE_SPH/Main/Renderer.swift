@@ -184,38 +184,38 @@ class Renderer: NSObject {
         
         // MARK: - Bitonic Sort + Start Indices
 
-        BitonicSortSerial()
-        
-        guard let commandComputeBuffer = Renderer.commandQueue.makeCommandBuffer() else { return }
-        guard let computeEncoder: MTLComputeCommandEncoder = commandComputeBuffer.makeComputeCommandEncoder(dispatchType: MTLDispatchType.serial) else { return }
-        
-        computeEncoder.setComputePipelineState(setupIndicesPipelineState)
-        
-        w = computePipelineState.maxTotalThreadsPerThreadgroup
-        threadsPerGrid = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
-        threadsPerThreadgroup = MTLSize(width: w, height: 1, depth: 1)
-        
-        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
-        computeEncoder.setBuffer(Renderer.comboBuffer, offset: 0, index: 2)
-        computeEncoder.setBuffer(startIndicesBuffer, offset: 0, index: 3)
-        computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
-        
-        computeEncoder.endEncoding()
-        commandComputeBuffer.commit()
-        commandComputeBuffer.waitUntilCompleted()
-        
-        if (Settings.debugMode){
-            
-            var comboBufferPtr = Renderer.comboBuffer.contents().assumingMemoryBound(to: Combo.self)
-            var startIndicesPtr = startIndicesBuffer.contents().assumingMemoryBound(to: UInt32.self)
-            
-            for _ in 0..<Int(ParticleSettings.particleCount) {
-                print("ID - \(comboBufferPtr.pointee.ID) -HashKey-> \(comboBufferPtr.pointee.hashKey) / \(startIndicesPtr.pointee)")
-                comboBufferPtr+=1
-                startIndicesPtr+=1
-            }
-            print("Sorted")
-        }
+//        BitonicSortSerial()
+//
+//        guard let commandComputeBuffer = Renderer.commandQueue.makeCommandBuffer() else { return }
+//        guard let computeEncoder: MTLComputeCommandEncoder = commandComputeBuffer.makeComputeCommandEncoder(dispatchType: MTLDispatchType.serial) else { return }
+//        
+//        computeEncoder.setComputePipelineState(setupIndicesPipelineState)
+//        
+//        w = computePipelineState.maxTotalThreadsPerThreadgroup
+//        threadsPerGrid = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
+//        threadsPerThreadgroup = MTLSize(width: w, height: 1, depth: 1)
+//        
+//        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
+//        computeEncoder.setBuffer(Renderer.comboBuffer, offset: 0, index: 2)
+//        computeEncoder.setBuffer(startIndicesBuffer, offset: 0, index: 3)
+//        computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+//        
+//        computeEncoder.endEncoding()
+//        commandComputeBuffer.commit()
+//        commandComputeBuffer.waitUntilCompleted()
+//        
+//        if (Settings.debugMode){
+//            
+//            var comboBufferPtr = Renderer.comboBuffer.contents().assumingMemoryBound(to: Combo.self)
+//            var startIndicesPtr = startIndicesBuffer.contents().assumingMemoryBound(to: UInt32.self)
+//            
+//            for _ in 0..<Int(ParticleSettings.particleCount) {
+//                print("ID - \(comboBufferPtr.pointee.ID) -HashKey-> \(comboBufferPtr.pointee.hashKey) / \(startIndicesPtr.pointee)")
+//                comboBufferPtr+=1
+//                startIndicesPtr+=1
+//            }
+//            print("Sorted")
+//        }
 
         // MARK: - PARTICLES
         
