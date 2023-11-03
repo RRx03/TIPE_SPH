@@ -7,8 +7,6 @@ class GameController: NSObject {
     var particles: [Particle] = []
     static var particleBuffer: MTLBuffer!
     
-    static var comboArr: [Combo] = []
-    static var startIndices: [Int32] = .init(repeating: 0, count: Int(ParticleSettings.particleCount))
 
     var lastTime: Double = CFAbsoluteTimeGetCurrent()
 
@@ -41,7 +39,6 @@ class GameController: NSObject {
                         Float(y)*gridConstantY+ParticleSettings.gridPosition[1]-ParticleSettings.gridSize[1]/2+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger),
                         Float(z)*gridConstantZ+ParticleSettings.gridPosition[2]-ParticleSettings.gridSize[2]/2+Float.random(in: -ParticleSettings.spawnJigger...ParticleSettings.spawnJigger))
                     particles.append(Particle(position: pos, oldPosition: pos, velocity: [0, 0, 0], acceleration: [0, 0, 0], forces: [0, 0, 0], color: [1, 1, 1], rho: 0, pressure: 0, density: 1, viscosity: 0))
-                    GameController.comboArr.append(Combo(ID: ID, hashKey: 0))
                 }
             }
         }

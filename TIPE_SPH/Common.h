@@ -20,7 +20,8 @@ typedef struct {
 
     
     int particleCount;
-    int cellCount;
+    float cellSIZE;
+
 
     float particleMass;
     float particleBouncingCoefficient;
@@ -33,6 +34,9 @@ typedef struct {
     float hConst3;
     float hConst9;
     float globalFriction;
+    
+    
+    
 
 } Uniforms;
 
@@ -70,8 +74,9 @@ typedef struct {
 
 typedef struct {
     
-    uint ID;
-    uint hashKey;
-} Combo;
+    uint startIndex;
+    uint Count;
+    
+} StartIndexCount;
 
 #endif

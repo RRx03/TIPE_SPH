@@ -1,5 +1,5 @@
 #include <metal_stdlib>
-
+#include <metal_atomic>
 #include "../Common.h"
 using namespace metal;
 
@@ -54,14 +54,14 @@ constant const int3 NeighB[27] = {
     
 };
 
-uint hashkey(int3 coords, uint total){
-    
-    int temp1 = (coords.x*92837111)^(coords.y*689287499)^(coords.z*283923481);
-    return uint(abs(temp1) % total);
 
+int3 CellCoords(float3 pos, float CELL_SIZE){
+    return int3(pos/CELL_SIZE);
 }
-int3 CellCoords (float3 pos, float gridSize){
-    return int3(pos/(gridSize*2));
+uint hash(int3 CellCoords, uint tableSize){
+    
+    int h = (CellCoords.x*92837111)^(CellCoords.y*689287499)^(CellCoords.z*283923481);
+    return uint(abs(h) % tableSize);
 
 }
 
@@ -119,63 +119,36 @@ fragment float4 Fragment(VertexOut vertexIn [[stage_in]], constant Params &param
     return float4(color * iso, 1);
 }
 
-kernel void CellUpdate (device Particle *particles [[buffer(1)]],
-                        device Combo *combo [[buffer(2)]],
-                        constant Uniforms &uniforms [[buffer(11)]],
-                        uint id [[thread_position_in_grid]])
+kernel void initTable(constant Particle *particles [[buffer(1)]],
+                      device atomic_uint &table [[buffer(2)]],
+                      constant Uniforms &uniforms [[buffer(11)]],
+                      uint particleID [[thread_position_in_grid]])
 {
-    Particle particle = particles[id];
-    int3 cellCoords = CellCoords(particle.position, uniforms.hConst);
-    combo[id].ID = id;
-    combo[id].hashKey = hashkey(cellCoords ,uniforms.particleCount);
-    
+    int3 cellCoords = CellCoords(particles[particleID].position, uniforms.cellSIZE);
+    uint hashValue = hash(cellCoords, uniforms.particleCount);
+    atomic_fetch_add_explicit(&table+hashValue, 1, memory_order_relaxed);
 }
 
 
-kernel void PairSort(device Combo *combo [[buffer(2)]],
-                     constant BitonicSorterParams &params [[buffer(13)]],
-                     uint id [[thread_position_in_grid]])
+kernel void assignDenseTable(constant Particle *particles [[buffer(1)]],
+                             device atomic_uint &table [[buffer(2)]],
+                             device atomic_uint &denseTable [[buffer(3)]],
+                             constant Uniforms &uniforms [[buffer(11)]],
+                             uint particleID [[thread_position_in_grid]])
 {
-    uint i = id;
-    uint h = i & (params.groupWidth - 1);
-    uint indexLow = h + (params.groupHeight+1)*(i/(params.groupWidth));
-    uint indexHigh = indexLow + (params.stepIndex == 0 ? params.groupHeight - 2*h : (params.groupHeight +1)/2);
+    int3 cellCoords = CellCoords(particles[particleID].position, uniforms.cellSIZE);
+    uint hashValue = hash(cellCoords, uniforms.particleCount);
+        
+    uint id = atomic_fetch_add_explicit(&table+hashValue, -1, memory_order_relaxed);
+    id -= 1;
 
-    if (indexHigh >= uint(params.bufferLength)){
-        return;
-    }
-
-    Combo valueLow = combo[indexLow];
-    Combo valueHigh = combo[indexHigh];
-
-    if (valueLow.hashKey > valueHigh.hashKey){
-        combo[indexLow] = valueHigh;
-        combo[indexHigh] = valueLow;
-    }
-
+    atomic_fetch_add_explicit(&denseTable+id, particleID, memory_order_relaxed);
 }
-
-kernel void StartIndices (device Combo *combo [[buffer(2)]],
-                          device uint *startIndices[[buffer(3)]],
-                        constant Uniforms &uniforms [[buffer(11)]],
-                        uint id [[thread_position_in_grid]])
-{
-    if(id == 0){
-        startIndices[combo[id].hashKey] = id;
-    }
-    if(combo[id].hashKey != combo[id-1].hashKey){
-        startIndices[combo[id].hashKey] = id;
-    }
-    else {
-        return;
-    }
-}
-
-
 
 kernel void updateParticles(device Particle *particles [[buffer(1)]],
-                            device Combo *combo [[buffer(2)]],
-                            device uint *startIndices [[buffer(3)]],
+                            device uint *table [[buffer(2)]],
+                            device uint *denseTable [[buffer(3)]],
+                            constant StartIndexCount *startIndex [[buffer(4)]],
                             constant Uniforms &uniforms [[buffer(11)]],
                             uint id [[thread_position_in_grid]])
 {
@@ -183,70 +156,63 @@ kernel void updateParticles(device Particle *particles [[buffer(1)]],
     
     Particle particle = particles[id];
     
-    int3 cellCoords = CellCoords(particle.position, uniforms.hConst);
+    int3 cellCoords = CellCoords(particles[id].position, uniforms.cellSIZE);
     
     particle.forces = float3(0, -uniforms.gravity * uniforms.particleMass, 0);
     float updateDeltaTime = uniforms.deltaTime;
     
-//    
-//    uint NeighBCells[27]; //Stores HashKeys
-//    
-//    for (int i = 0; i < 27; i++){
-//        int3 NeighBCellCoords = cellCoords + NeighB[i];
-//        NeighBCells[i] = hashkey(NeighBCellCoords, uniforms.particleCount);
-//        int index = startIndices[NeighBCells[i]];
-//        if (index < uniforms.particleCount){
-//            
-//        
-//        
-//        while (combo[index].hashKey == NeighBCells[i]){
-//            if (combo[index].ID != id){
-//                Particle otherParticle = particles[combo[index].ID];
-//                float3 diff = otherParticle.position - particle.position; //Continous collisions (text for position + Vel (= Verlet vel) etc etc ad test for distance ...)
-//                float dist = length(diff);
-//                if(dist != 0){
-//                    float3 Ndiff = normalize(diff);
-//                    if(dist < uniforms.particleRadius*2){
-//                        particle.position += -Ndiff*(uniforms.particleRadius*2-dist)/2; //this would allow bouncing coefficient to get introduced
-//                        otherParticle.position += Ndiff*(uniforms.particleRadius*2-dist)/2;
-//                        particles[combo[index].ID] = otherParticle;
-//                    }
-//                }
-//                if(dist < uniforms.hConst){
-//                    particle.rho += uniforms.particleMass*Weight(dist/uniforms.hConst, uniforms.hConst3);
-//                }
-//            }
-//            
-//            
-//            index++;
-//        }
-//    }
-//        
-//        
-//    }
     
-
+    uint NeighBCells[27]; //Stores HashKeys
     
-
-    for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
-        if(otherParticleID == id){
-            continue;
-        }
-        Particle otherParticle = particles[otherParticleID];
-        float3 diff = otherParticle.position - particle.position; //Continous collisions (text for position + Vel (= Verlet vel) etc etc ad test for distance ...)
-        float dist = length(diff);
-        if(dist != 0){
-            float3 Ndiff = normalize(diff);
-            if(dist < uniforms.particleRadius*2){
-                particle.position += -Ndiff*(uniforms.particleRadius*2-dist)/2; //this would allow bouncing coefficient to get introduced
-                otherParticle.position += Ndiff*(uniforms.particleRadius*2-dist)/2;
-                particles[otherParticleID] = otherParticle;
+    for (int i = 0; i < 27; i++){
+        int3 NeighBCellCoords = cellCoords + NeighB[i];
+        NeighBCells[i] = hash(NeighBCellCoords, uniforms.particleCount);
+        int index = startIndex[NeighBCells[i]].startIndex;
+        int neighBCount = startIndex[NeighBCells[i]].Count;
+        
+        if (index < uniforms.particleCount){
+            
+            for(int i = 0; i < neighBCount; i++){
+                if (denseTable[index+i] != id){
+                    Particle otherParticle = particles[denseTable[index+i]];
+                    float3 diff = otherParticle.position - particle.position; //Continous collisions (text for position + Vel (= Verlet vel) etc etc ad test for distance ...)
+                    float dist = length(diff);
+                    if(dist != 0){
+                        float3 Ndiff = normalize(diff);
+                        if(dist < uniforms.particleRadius*2){
+                            particle.position += -Ndiff*(uniforms.particleRadius*2-dist)/2; //this would allow bouncing coefficient to get introduced
+                            otherParticle.position += Ndiff*(uniforms.particleRadius*2-dist)/2;
+                            particles[denseTable[index+i]] = otherParticle;
+                        }
+                    }
+                    if(dist < uniforms.hConst){
+                        particle.rho += uniforms.particleMass*Weight(dist/uniforms.hConst, uniforms.hConst3);
+                    }
+                }
             }
         }
-        if(dist < uniforms.hConst){
-            particle.rho += uniforms.particleMass*Weight(dist/uniforms.hConst, uniforms.hConst3);
-        }
     }
+    
+//
+//    for (uint otherParticleID = 0; otherParticleID < uint(uniforms.particleCount); otherParticleID++){
+//        if(otherParticleID == id){
+//            continue;
+//        }
+//        Particle otherParticle = particles[otherParticleID];
+//        float3 diff = otherParticle.position - particle.position; //Continous collisions (text for position + Vel (= Verlet vel) etc etc ad test for distance ...)
+//        float dist = length(diff);
+//        if(dist != 0){
+//            float3 Ndiff = normalize(diff);
+//            if(dist < uniforms.particleRadius*2){
+//                particle.position += -Ndiff*(uniforms.particleRadius*2-dist)/2; //this would allow bouncing coefficient to get introduced
+//                otherParticle.position += Ndiff*(uniforms.particleRadius*2-dist)/2;
+//                particles[otherParticleID] = otherParticle;
+//            }
+//        }
+//        if(dist < uniforms.hConst){
+//            particle.rho += uniforms.particleMass*Weight(dist/uniforms.hConst, uniforms.hConst3);
+//        }
+//    }
     
     particle.velocity = particle.position - particle.oldPosition;
     particle.acceleration = particle.forces / uniforms.particleMass;

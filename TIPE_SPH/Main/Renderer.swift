@@ -7,9 +7,8 @@ class Renderer: NSObject {
     
     var renderPipelineState: MTLRenderPipelineState!
     var computePipelineState: MTLComputePipelineState!
-    var cellPipelineState: MTLComputePipelineState!
-    var pairSorterPipelineState: MTLComputePipelineState!
-    var setupIndicesPipelineState: MTLComputePipelineState!
+    var initTablePSO: MTLComputePipelineState!
+    var assignDenseTablePSO: MTLComputePipelineState!
 
     let depthStencilState: MTLDepthStencilState?
 
@@ -18,12 +17,17 @@ class Renderer: NSObject {
     
     var mesh: MTKMesh
     
-    static var comboBuffer: MTLBuffer!
-    var startIndicesBuffer: MTLBuffer!
-
+    var tableArray: [UInt32] = .init(repeating: 0, count: Int(ParticleSettings.particleCount) + 1)
+    var denseTableArray: [UInt32] = .init(repeating: 0, count: Int(ParticleSettings.particleCount))
+    var startIndexArray: [StartIndexCount] = .init(repeating: StartIndexCount(startIndex: UInt32(ParticleSettings.particleCount), Count: 0), count: Int(ParticleSettings.particleCount))
+    
+    var table: MTLBuffer!
+    var denseTable: MTLBuffer!
+    var startIndex: MTLBuffer!
+    
     init(metalView: MTKView) {
+        
         // MARK: - Basic Definitions
-
         let device = MTLCreateSystemDefaultDevice()
         let commandQueue = device?.makeCommandQueue()
         Renderer.device = device
@@ -47,9 +51,10 @@ class Renderer: NSObject {
         }
         mesh = mtkMesh
         
-        Renderer.comboBuffer = Renderer.device.makeBuffer(bytes: &GameController.comboArr, length: MemoryLayout<Combo>.stride * Int(ParticleSettings.particleCount))
-        startIndicesBuffer = Renderer.device.makeBuffer(bytes: &GameController.startIndices, length: MemoryLayout<UInt32>.stride * Int(ParticleSettings.particleCount))
-        
+        table = Renderer.device.makeBuffer(bytes: &tableArray, length: MemoryLayout<UInt32>.stride * (Int(ParticleSettings.particleCount) + 1))
+        denseTable = Renderer.device.makeBuffer(bytes: &denseTableArray, length: MemoryLayout<UInt32>.stride * Int(ParticleSettings.particleCount))
+        startIndex = Renderer.device.makeBuffer(bytes: &startIndexArray, length: MemoryLayout<StartIndexCount>.stride * Int(ParticleSettings.particleCount))
+
         super.init()
         
         // MARK: - Creating PSOs (maybe create a new file for this)
@@ -59,9 +64,8 @@ class Renderer: NSObject {
         let vertex = library?.makeFunction(name: "Vertex")
         let fragment = library?.makeFunction(name: "Fragment")
         let kernel = library?.makeFunction(name: "updateParticles")
-        let cell = library?.makeFunction(name: "CellUpdate")
-        let PairSort = library?.makeFunction(name: "PairSort")
-        let setupIndices = library?.makeFunction(name: "StartIndices")
+        let initTableFunction = library?.makeFunction(name: "initTable")
+        let assignDenseTableFunction = library?.makeFunction(name: "assignDenseTable")
 
         let renderPipelineStateDescriptor = MTLRenderPipelineDescriptor()
         renderPipelineStateDescriptor.vertexFunction = vertex
@@ -73,9 +77,8 @@ class Renderer: NSObject {
         do {
             renderPipelineState = try Renderer.device.makeRenderPipelineState(descriptor: renderPipelineStateDescriptor)
             computePipelineState = try Renderer.device.makeComputePipelineState(function: kernel!)
-            cellPipelineState = try Renderer.device.makeComputePipelineState(function: cell!)
-            pairSorterPipelineState = try Renderer.device.makeComputePipelineState(function: PairSort!)
-            setupIndicesPipelineState = try Renderer.device.makeComputePipelineState(function: setupIndices!)
+            initTablePSO = try Renderer.device.makeComputePipelineState(function: initTableFunction!)
+            assignDenseTablePSO = try Renderer.device.makeComputePipelineState(function: assignDenseTableFunction!)
 
         } catch {
             fatalError("Fail")
@@ -105,6 +108,7 @@ class Renderer: NSObject {
         uniforms.hConst = ParticleSettings.h
         uniforms.hConst3 = pow(ParticleSettings.h, 3)
         uniforms.hConst9 = pow(ParticleSettings.h, 9)
+        uniforms.cellSIZE = 2 * uniforms.hConst
     }
     
     static func buildDepthStencilState() -> MTLDepthStencilState? {
@@ -116,8 +120,6 @@ class Renderer: NSObject {
     }
     
     func render(view: MTKView, deltaTime: Float) {
-        
-        
         /*
          Idees : commit git hub et cloner le projets pour le modif sur VSCODE
          Parraleliser les devices computings/rendering
@@ -162,61 +164,75 @@ class Renderer: NSObject {
         
         // MARK: - COMPUTING a faire avec un autre device en parallele
 
-        // MARK: - Cell Dispatching
+        // MARK: - initTable
 
         guard let commandComputeBuffer = Renderer.commandQueue.makeCommandBuffer() else { return }
         guard let computeEncoder: MTLComputeCommandEncoder = commandComputeBuffer.makeComputeCommandEncoder(dispatchType: MTLDispatchType.serial) else { return }
         
-        computeEncoder.setComputePipelineState(cellPipelineState)
+        computeEncoder.setComputePipelineState(initTablePSO)
 
-        var w: Int = computePipelineState.maxTotalThreadsPerThreadgroup
-        var threadsPerGrid = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
-        var threadsPerThreadgroup = MTLSize(width: w, height: 1, depth: 1)
+        var maxThreads: Int = initTablePSO.maxTotalThreadsPerThreadgroup
+        var gridSize = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
+        var threadGroupSize = MTLSize(width: maxThreads, height: 1, depth: 1)
         
-        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
         computeEncoder.setBuffer(GameController.particleBuffer, offset: 0, index: 1)
-        computeEncoder.setBuffer(Renderer.comboBuffer, offset: 0, index: 2)
-        computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+        computeEncoder.setBuffer(table, offset: 0, index: 2)
+        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
+        computeEncoder.dispatchThreads(gridSize, threadsPerThreadgroup: threadGroupSize)
         
         computeEncoder.endEncoding()
         commandComputeBuffer.commit()
         commandComputeBuffer.waitUntilCompleted()
         
-        // MARK: - Bitonic Sort + Start Indices
+        // MARK: - PartialSum
+       
+        var tablePtr = table.contents().assumingMemoryBound(to: UInt32.self)
+        var sum : UInt32 = 0
+        for _ in 0..<Int(ParticleSettings.particleCount) {
+            sum = sum + tablePtr.pointee
+            tablePtr.pointee = sum
+            tablePtr+=1
+        }
+        tablePtr.pointee = sum
 
-//        BitonicSortSerial()
-//
-//        guard let commandComputeBuffer = Renderer.commandQueue.makeCommandBuffer() else { return }
-//        guard let computeEncoder: MTLComputeCommandEncoder = commandComputeBuffer.makeComputeCommandEncoder(dispatchType: MTLDispatchType.serial) else { return }
-//        
-//        computeEncoder.setComputePipelineState(setupIndicesPipelineState)
-//        
-//        w = computePipelineState.maxTotalThreadsPerThreadgroup
-//        threadsPerGrid = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
-//        threadsPerThreadgroup = MTLSize(width: w, height: 1, depth: 1)
-//        
-//        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
-//        computeEncoder.setBuffer(Renderer.comboBuffer, offset: 0, index: 2)
-//        computeEncoder.setBuffer(startIndicesBuffer, offset: 0, index: 3)
-//        computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
-//        
-//        computeEncoder.endEncoding()
-//        commandComputeBuffer.commit()
-//        commandComputeBuffer.waitUntilCompleted()
-//        
-//        if (Settings.debugMode){
-//            
-//            var comboBufferPtr = Renderer.comboBuffer.contents().assumingMemoryBound(to: Combo.self)
-//            var startIndicesPtr = startIndicesBuffer.contents().assumingMemoryBound(to: UInt32.self)
-//            
-//            for _ in 0..<Int(ParticleSettings.particleCount) {
-//                print("ID - \(comboBufferPtr.pointee.ID) -HashKey-> \(comboBufferPtr.pointee.hashKey) / \(startIndicesPtr.pointee)")
-//                comboBufferPtr+=1
-//                startIndicesPtr+=1
-//            }
-//            print("Sorted")
-//        }
+        // MARK: - assignDenseTable
 
+        guard let commandComputeBuffer = Renderer.commandQueue.makeCommandBuffer() else { return }
+        guard let computeEncoder: MTLComputeCommandEncoder = commandComputeBuffer.makeComputeCommandEncoder(dispatchType: MTLDispatchType.serial) else { return }
+        
+        computeEncoder.setComputePipelineState(assignDenseTablePSO)
+
+        maxThreads = assignDenseTablePSO.maxTotalThreadsPerThreadgroup
+        gridSize = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
+        threadGroupSize = MTLSize(width: maxThreads, height: 1, depth: 1)
+        
+        computeEncoder.setBuffer(GameController.particleBuffer, offset: 0, index: 1)
+        computeEncoder.setBuffer(table, offset: 0, index: 2)
+        computeEncoder.setBuffer(denseTable, offset: 0, index: 3)
+        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
+        
+        computeEncoder.dispatchThreads(gridSize, threadsPerThreadgroup: threadGroupSize)
+        computeEncoder.endEncoding()
+        commandComputeBuffer.commit()
+        commandComputeBuffer.waitUntilCompleted()
+        
+        // MARK: - StartIndex
+
+        var startIndexPtr = startIndex.contents().assumingMemoryBound(to: StartIndexCount.self)
+        tablePtr = table.contents().assumingMemoryBound(to: UInt32.self)
+        startIndexPtr += Int(ParticleSettings.particleCount)-1
+        tablePtr += Int(ParticleSettings.particleCount)
+        var previousValue : UInt32 = tablePtr.pointee
+        tablePtr -= 1
+        for _ in 0..<Int(ParticleSettings.particleCount) {
+            if (tablePtr.pointee != previousValue){
+                startIndexPtr.pointee.startIndex = tablePtr.pointee
+                startIndexPtr.pointee.Count = previousValue-tablePtr.pointee
+            }
+            previousValue = tablePtr.pointee
+            startIndexPtr -= 1
+            tablePtr -= 1
+        }
         // MARK: - PARTICLES
         
         guard let commandComputeBuffer = Renderer.commandQueue.makeCommandBuffer() else { return }
@@ -224,55 +240,38 @@ class Renderer: NSObject {
         
         computeEncoder.setComputePipelineState(computePipelineState)
         
-        w = computePipelineState.maxTotalThreadsPerThreadgroup
-        threadsPerGrid = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
-        threadsPerThreadgroup = MTLSize(width: w, height: 1, depth: 1)
-
-        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
-        computeEncoder.setBuffer(GameController.particleBuffer, offset: 0, index: 1)
-        computeEncoder.setBuffer(Renderer.comboBuffer, offset: 0, index: 2)
-        computeEncoder.setBuffer(startIndicesBuffer, offset: 0, index: 3)
-        computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+        maxThreads = computePipelineState.maxTotalThreadsPerThreadgroup
+        gridSize = MTLSize(width: Int(ParticleSettings.particleCount), height: 1, depth: 1)
+        threadGroupSize = MTLSize(width: maxThreads, height: 1, depth: 1)
         
+
+        computeEncoder.setBuffer(GameController.particleBuffer, offset: 0, index: 1)
+        computeEncoder.setBuffer(table, offset: 0, index: 2)
+        computeEncoder.setBuffer(denseTable, offset: 0, index: 3)
+        computeEncoder.setBuffer(startIndex, offset: 0, index: 4)
+        computeEncoder.setBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 11)
+        
+        computeEncoder.dispatchThreads(gridSize, threadsPerThreadgroup: threadGroupSize)
         computeEncoder.endEncoding()
         commandComputeBuffer.commit()
-        commandComputeBuffer.waitUntilCompleted() // USELESS?
-    }
-    
-    func NextPoxerOfTwo(value: Int32) -> Int32 {
-        return 1 << Int32(ceil(log2(Double(value))))
-    }
-    
-    func BitonicSortSerial() // Peut etre rendre le buffer static et directement aller le chercher avec Renderer.jkegfjhzehf
-    {
-        var bitonicParams = BitonicSorterParams()
-        let bufferLength = Int32(Renderer.comboBuffer.length/MemoryLayout<Combo>.stride)
-        let numPairs = NextPoxerOfTwo(value: bufferLength)/2
-        let numStages = Int32(log2(Double(numPairs * 2)))
-        bitonicParams.bufferLength = bufferLength
+        commandComputeBuffer.waitUntilCompleted()
         
-        for stageIndex in 0..<numStages {
-            for stepIndex in 0..<(stageIndex + 1) {
-                let groupWidth: Int32 = 1 << (stageIndex - stepIndex)
-                let groupHeight: Int32 = 2 * groupWidth - 1
-                
-                bitonicParams.groupWidth = groupWidth
-                bitonicParams.groupHeight = groupHeight
-                bitonicParams.stepIndex = stepIndex
-                
-                guard let commandBuffer = Renderer.commandQueue.makeCommandBuffer() else { return }
-                guard let commandEncoder: MTLComputeCommandEncoder = commandBuffer.makeComputeCommandEncoder(dispatchType: MTLDispatchType.serial) else { return }
-                
-                commandEncoder.setComputePipelineState(pairSorterPipelineState)
-                commandEncoder.setBuffer(Renderer.comboBuffer, offset: 0, index: 2)
-                commandEncoder.setBytes(&bitonicParams, length: MemoryLayout<BitonicSorterParams>.stride, index: 13)
-                let gridSize = MTLSize(width: Int(numPairs), height: 1, depth: 1)
-                let threadGroupSize = MTLSize(width: 128, height: 1, depth: 1)
-                commandEncoder.dispatchThreads(gridSize, threadsPerThreadgroup: threadGroupSize)
-                commandEncoder.endEncoding()
-                commandBuffer.commit()
-                commandBuffer.waitUntilCompleted()
-            }
+        
+        
+        tablePtr = table.contents().assumingMemoryBound(to: UInt32.self)
+        startIndexPtr = startIndex.contents().assumingMemoryBound(to: StartIndexCount.self)
+        var denseTablePtr = denseTable.contents().assumingMemoryBound(to: UInt32.self)
+        for _ in 0..<Int(ParticleSettings.particleCount) {
+            tablePtr.pointee = 0
+            denseTablePtr.pointee = 0
+            startIndexPtr.pointee.startIndex = UInt32(ParticleSettings.particleCount)
+            startIndexPtr.pointee.Count = 0
+            
+            tablePtr += 1
+            denseTablePtr += 1
+            startIndexPtr += 1
+            
         }
+        tablePtr.pointee = 0
     }
 }
