@@ -104,11 +104,11 @@ class Renderer: NSObject {
         uniforms.particleRestDensity = ParticleSettings.restDensity
         uniforms.particleGazConstant = ParticleSettings.gazConstant
         uniforms.particleRadius = ParticleSettings.radius
-        uniforms.globalFriction = Settings.globalFriction
         uniforms.hConst = ParticleSettings.h
         uniforms.hConst3 = pow(ParticleSettings.h, 3)
         uniforms.hConst9 = pow(ParticleSettings.h, 9)
         uniforms.cellSIZE = 2 * uniforms.hConst
+        uniforms.subSteps = Settings.subSteps
     }
     
     static func buildDepthStencilState() -> MTLDepthStencilState? {
