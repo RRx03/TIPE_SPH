@@ -35,7 +35,7 @@ enum ParticleSettings{
     static var meshPrecision : UInt32 = 10
     
     static var spawnJigger : Float = 0.1
-    static var gridPopulation : [Int] = [20, 100, 10]
+    static var gridPopulation : [Int] = [10, 100, 10]
     static var gridSize : [Float] = [9, 6, 9]
     static var gridPosition : [Float] = [0.5, 4, 0]
     static var particleCount : Int32 {return Int32(gridPopulation[0]*gridPopulation[1]*gridPopulation[2])}
